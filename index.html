@@ -31,17 +31,17 @@ h1{font-size:20px;font-weight:500;margin-bottom:4px}
 </head>
 <body>
 <h1>BinanceBot 績效儀表板</h1>
-<div class="sub">Scoring 策略 · Vegas+QQE · 最後更新：2026-06-14 15:01</div>
+<div class="sub">Scoring 策略 · Vegas+QQE · 最後更新：2026-06-14 16:40</div>
 
 <div class="grid4">
   <div class="metric"><div class="lbl">總損益</div>
-    <div class="val neg">-$28.4</div></div>
+    <div class="val pos">+$43.21</div></div>
   <div class="metric"><div class="lbl">勝率</div>
-    <div class="val">22.2%</div></div>
+    <div class="val">35.5%</div></div>
   <div class="metric"><div class="lbl">已平倉筆數</div>
-    <div class="val">9 筆</div></div>
+    <div class="val">62 筆</div></div>
   <div class="metric"><div class="lbl">止盈 / 止損</div>
-    <div class="val"><span class="pos">2</span> / <span class="neg">7</span></div></div>
+    <div class="val"><span class="pos">22</span> / <span class="neg">40</span></div></div>
 </div>
 
 <div class="grid2">
@@ -69,16 +69,16 @@ h1{font-size:20px;font-weight:500;margin-bottom:4px}
   <div id="recent"></div>
 </div>
 
-<div class="updated">資料來源：oi_trades_log.csv · 最佳單筆：+$23.67 · 最差：$-14.22</div>
+<div class="updated">資料來源：oi_trades_log.csv · 最佳單筆：+$26.51 · 最差：$-11.82</div>
 
 <script>
-const DAYS=["2026-06-13", "2026-06-14"];
-const DWIN=[23.67, 5.38];
-const DLOSS=[12.58, 44.87];
-const CUM=[11.09, -28.4];
-const SYML=["TAOUSDT", "COAIUSDT", "CRVUSDT", "DOGEUSDT", "SOLUSDT", "ADAUSDT", "HYPEUSDT", "BEATUSDT"];
-const SYMR=[100.0, 50.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
-const RECENT=[{"time": "2026-06-14 14:00:42", "symbol": "BEATUSDT", "direction": "long", "qty": 23.0, "entry": 7.1866, "pnl": -12.06, "result": "\u6b62\u640d"}, {"time": "2026-06-14 13:08:33", "symbol": "COAIUSDT", "direction": "long", "qty": 136.0, "entry": 0.428, "pnl": 5.38, "result": "\u6b62\u76c8"}, {"time": "2026-06-14 13:08:33", "symbol": "ADAUSDT", "direction": "long", "qty": 7742.0, "entry": 0.1721, "pnl": -1.44, "result": "\u6b62\u640d"}, {"time": "2026-06-14 13:08:33", "symbol": "HYPEUSDT", "direction": "long", "qty": 15.02, "entry": 60.416, "pnl": -5.39, "result": "\u6b62\u640d"}, {"time": "2026-06-14 09:41:46", "symbol": "SOLUSDT", "direction": "long", "qty": 23.76, "entry": 68.87, "pnl": -14.22, "result": "\u6b62\u640d"}, {"time": "2026-06-14 03:40:00", "symbol": "COAIUSDT", "direction": "long", "qty": 199.0, "entry": 0.6886, "pnl": -11.76, "result": "\u6b62\u640d"}, {"time": "2026-06-13 23:19:12", "symbol": "DOGEUSDT", "direction": "long", "qty": 19835.0, "entry": 0.088658, "pnl": -12.3, "result": "\u6b62\u640d"}, {"time": "2026-06-13 21:31:32", "symbol": "TAOUSDT", "direction": "long", "qty": 1.925, "entry": 0.0, "pnl": 23.67, "result": "\u6b62\u76c8"}, {"time": "2026-06-13 15:12:34", "symbol": "CRVUSDT", "direction": "long", "qty": 2834.0, "entry": 0.0, "pnl": -0.28, "result": "\u6b62\u640d"}];
+const DAYS=["2026-06-10", "2026-06-11", "2026-06-12", "2026-06-13", "2026-06-14"];
+const DWIN=[20.6, 53.27, 1.2, 90.45, 65.34];
+const DLOSS=[13.71, 65.76, 13.41, 43.35, 51.42];
+const CUM=[6.89, -5.6, -17.81, 29.29, 43.21];
+const SYML=["STGUSDT", "ROBOUSDT", "GENIUSUSDT", "OPNUSDT", "HUSDT", "USDCUSDT", "UBUSDT", "CRVUSDT", "OPUSDT", "BTCUSDT"];
+const SYMR=[100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0];
+const RECENT=[{"time": "2026-06-14 14:01:04", "symbol": "BEATUSDT", "direction": "long", "qty": 23.0, "entry": 7.18541739, "pnl": -11.82, "result": "\u6b62\u640d"}, {"time": "2026-06-14 09:42:07", "symbol": "SOLUSDT", "direction": "long", "qty": 23.76, "entry": 68.89, "pnl": -11.78, "result": "\u6b62\u640d"}, {"time": "2026-06-14 07:41:23", "symbol": "COAIUSDT", "direction": "long", "qty": 136.0, "entry": 0.428, "pnl": 5.44, "result": "\u6b62\u76c8"}, {"time": "2026-06-14 06:41:03", "symbol": "HYPEUSDT", "direction": "long", "qty": 15.02, "entry": 60.416, "pnl": -4.49, "result": "\u6b62\u640d"}, {"time": "2026-06-14 06:41:01", "symbol": "ADAUSDT", "direction": "long", "qty": 7742.0, "entry": 0.1721, "pnl": -0.11, "result": "\u6b62\u640d"}, {"time": "2026-06-14 04:40:39", "symbol": "DOGEUSDT", "direction": "long", "qty": 20948.0, "entry": 0.08765, "pnl": 10.98, "result": "\u6b62\u76c8"}, {"time": "2026-06-14 03:40:18", "symbol": "COAIUSDT", "direction": "long", "qty": 199.0, "entry": 0.6876, "pnl": -11.57, "result": "\u6b62\u640d"}, {"time": "2026-06-14 01:28:01", "symbol": "1000PEPEUSDT", "direction": "long", "qty": 494438.0, "entry": 0.00285229, "pnl": -11.65, "result": "\u6b62\u640d"}, {"time": "2026-06-14 00:27:39", "symbol": "ETHUSDT", "direction": "long", "qty": 1.938, "entry": 1673.56, "pnl": 24.33, "result": "\u6b62\u76c8"}, {"time": "2026-06-14 00:27:38", "symbol": "COAIUSDT", "direction": "long", "qty": 239.0, "entry": 0.5621, "pnl": 24.59, "result": "\u6b62\u76c8"}];
 
 new Chart(document.getElementById('pnlChart'),{
   type:'bar',
