@@ -8,42 +8,58 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#1a1a1a;padding:20px}
-h1{font-size:20px;font-weight:500;margin-bottom:4px}
-.sub{font-size:13px;color:#888;margin-bottom:20px}
-.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
-@media(max-width:700px){.grid4{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
-.card{background:#fff;border-radius:12px;padding:16px 20px;border:1px solid #e8e8e8}
+h1{font-size:20px;font-weight:500;margin-bottom:2px}
+.sub{font-size:13px;color:#888;margin-bottom:12px}
+.filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.filters button{padding:6px 14px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;color:#555;transition:all .15s}
+.filters button.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:900px){.grid4{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
+@media(max-width:500px){.grid4{grid-template-columns:repeat(2,1fr)}}
+.card{background:#fff;border-radius:12px;padding:16px 20px;border:1px solid #e8e8e8;margin-bottom:16px}
 .metric{background:#f9f9f9;border-radius:8px;padding:14px;text-align:center;border:1px solid #ececec}
-.metric .lbl{font-size:12px;color:#888;margin-bottom:6px}
-.metric .val{font-size:22px;font-weight:500}
-.pos{color:#1D9E75}.neg{color:#D85A30}.blue{color:#185FA5}
+.metric .lbl{font-size:11px;color:#888;margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em}
+.metric .val{font-size:20px;font-weight:500}
+.metric .sub2{font-size:11px;color:#aaa;margin-top:3px}
+.pos{color:#1D9E75}.neg{color:#D85A30}.neu{color:#185FA5}
 .hdr{font-size:12px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
-.row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
-.row:last-child{border:none}
+.ch-wrap{position:relative;height:220px}
+.ch-wrap-sm{position:relative;height:180px}
+.row-t{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.row-t:last-child{border:none}
 .sym{font-weight:500}.tf{font-size:11px;color:#aaa}
 .tag{display:inline-block;font-size:11px;padding:3px 10px;border-radius:6px;font-weight:500}
 .tw{background:#EAF3DE;color:#3B6D11}.tl{background:#FCEBEB;color:#A32D2D}
+.pos-tag-l{background:#EAF3DE;color:#3B6D11;display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px}
+.pos-tag-s{background:#FCEBEB;color:#A32D2D;display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;padding:8px 10px;font-size:11px;color:#888;border-bottom:2px solid #f0f0f0;font-weight:500}
+.tbl td{padding:9px 10px;border-bottom:1px solid #f5f5f5}
+.tbl tr:last-child td{border:none}
 .legend{display:flex;gap:16px;font-size:12px;color:#888;margin-bottom:8px;flex-wrap:wrap}
 .ld{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
-.updated{font-size:11px;color:#bbb;text-align:right;margin-top:16px}
+.updated{font-size:11px;color:#bbb;text-align:right;margin-top:8px}
+.empty{text-align:center;color:#bbb;padding:24px;font-size:13px}
 </style>
 </head>
 <body>
 <h1>BinanceBot 績效儀表板</h1>
-<div class="sub">Scoring 策略 · Vegas+QQE · 最後更新：2026-06-14 16:40</div>
+<div class="sub">Scoring 策略 · Vegas+QQE · 最後更新：2026-06-14 16:54</div>
 
-<div class="grid4">
-  <div class="metric"><div class="lbl">總損益</div>
-    <div class="val pos">+$43.21</div></div>
-  <div class="metric"><div class="lbl">勝率</div>
-    <div class="val">35.5%</div></div>
-  <div class="metric"><div class="lbl">已平倉筆數</div>
-    <div class="val">62 筆</div></div>
-  <div class="metric"><div class="lbl">止盈 / 止損</div>
-    <div class="val"><span class="pos">22</span> / <span class="neg">40</span></div></div>
+<div class="filters">
+  <button onclick="setFilter('week')" id="btn-week">本週</button>
+  <button onclick="setFilter('month')" id="btn-month">本月</button>
+  <button onclick="setFilter('30d')" id="btn-30d">30天</button>
+  <button onclick="setFilter('all')" id="btn-all" class="active">全部</button>
 </div>
 
+<!-- Summary Cards Row 1 -->
+<div class="grid4" id="cards1"></div>
+<!-- Summary Cards Row 2 -->
+<div class="grid4" id="cards2"></div>
+
+<!-- Charts Row 1: Daily PnL | Symbol PnL Ranking -->
 <div class="grid2">
   <div class="card">
     <div class="hdr">每日損益 + 累積 PnL</div>
@@ -52,81 +68,390 @@ h1{font-size:20px;font-weight:500;margin-bottom:4px}
       <span><span class="ld" style="background:#F0997B"></span>止損</span>
       <span><span class="ld" style="background:#378ADD;border-radius:50%"></span>累積</span>
     </div>
-    <div style="position:relative;height:220px">
-      <canvas id="pnlChart" role="img" aria-label="每日損益與累積PnL圖表"></canvas>
-    </div>
+    <div class="ch-wrap"><canvas id="pnlChart"></canvas></div>
   </div>
   <div class="card">
-    <div class="hdr">幣種勝率（前10）</div>
-    <div style="position:relative;height:252px">
-      <canvas id="symChart" role="img" aria-label="各幣種勝率長條圖"></canvas>
-    </div>
+    <div class="hdr">幣種總損益排行</div>
+    <div class="ch-wrap"><canvas id="symPnlChart"></canvas></div>
   </div>
 </div>
 
-<div class="card">
-  <div class="hdr">最近交易紀錄</div>
-  <div id="recent"></div>
+<!-- Charts Row 2: Hourly | Weekly -->
+<div class="grid2">
+  <div class="card">
+    <div class="hdr">每小時勝/敗分佈</div>
+    <div class="legend">
+      <span><span class="ld" style="background:#5DCAA5"></span>止盈</span>
+      <span><span class="ld" style="background:#F0997B"></span>止損</span>
+    </div>
+    <div class="ch-wrap"><canvas id="hourChart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="hdr">星期勝/敗分佈</div>
+    <div class="legend">
+      <span><span class="ld" style="background:#5DCAA5"></span>止盈</span>
+      <span><span class="ld" style="background:#F0997B"></span>止損</span>
+    </div>
+    <div class="ch-wrap-sm"><canvas id="weekChart"></canvas></div>
+  </div>
 </div>
 
-<div class="updated">資料來源：oi_trades_log.csv · 最佳單筆：+$26.51 · 最差：$-11.82</div>
+<!-- Symbol Win Rate -->
+<div class="card">
+  <div class="hdr">幣種勝率（前10）</div>
+  <div class="ch-wrap-sm"><canvas id="symWrChart"></canvas></div>
+</div>
+
+<!-- Current Positions -->
+<div class="card">
+  <div class="hdr">當前持倉</div>
+  <div id="posSection"></div>
+</div>
+
+<!-- Recent Trades -->
+<div class="card">
+  <div class="hdr">最近交易紀錄</div>
+  <div id="recentSection"></div>
+</div>
+
+<div class="updated">資料來源：Binance API · oi_trades_log.csv</div>
 
 <script>
-const DAYS=["2026-06-10", "2026-06-11", "2026-06-12", "2026-06-13", "2026-06-14"];
-const DWIN=[20.6, 53.27, 1.2, 90.45, 65.34];
-const DLOSS=[13.71, 65.76, 13.41, 43.35, 51.42];
-const CUM=[6.89, -5.6, -17.81, 29.29, 43.21];
-const SYML=["STGUSDT", "ROBOUSDT", "GENIUSUSDT", "OPNUSDT", "HUSDT", "USDCUSDT", "UBUSDT", "CRVUSDT", "OPUSDT", "BTCUSDT"];
-const SYMR=[100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0];
-const RECENT=[{"time": "2026-06-14 14:01:04", "symbol": "BEATUSDT", "direction": "long", "qty": 23.0, "entry": 7.18541739, "pnl": -11.82, "result": "\u6b62\u640d"}, {"time": "2026-06-14 09:42:07", "symbol": "SOLUSDT", "direction": "long", "qty": 23.76, "entry": 68.89, "pnl": -11.78, "result": "\u6b62\u640d"}, {"time": "2026-06-14 07:41:23", "symbol": "COAIUSDT", "direction": "long", "qty": 136.0, "entry": 0.428, "pnl": 5.44, "result": "\u6b62\u76c8"}, {"time": "2026-06-14 06:41:03", "symbol": "HYPEUSDT", "direction": "long", "qty": 15.02, "entry": 60.416, "pnl": -4.49, "result": "\u6b62\u640d"}, {"time": "2026-06-14 06:41:01", "symbol": "ADAUSDT", "direction": "long", "qty": 7742.0, "entry": 0.1721, "pnl": -0.11, "result": "\u6b62\u640d"}, {"time": "2026-06-14 04:40:39", "symbol": "DOGEUSDT", "direction": "long", "qty": 20948.0, "entry": 0.08765, "pnl": 10.98, "result": "\u6b62\u76c8"}, {"time": "2026-06-14 03:40:18", "symbol": "COAIUSDT", "direction": "long", "qty": 199.0, "entry": 0.6876, "pnl": -11.57, "result": "\u6b62\u640d"}, {"time": "2026-06-14 01:28:01", "symbol": "1000PEPEUSDT", "direction": "long", "qty": 494438.0, "entry": 0.00285229, "pnl": -11.65, "result": "\u6b62\u640d"}, {"time": "2026-06-14 00:27:39", "symbol": "ETHUSDT", "direction": "long", "qty": 1.938, "entry": 1673.56, "pnl": 24.33, "result": "\u6b62\u76c8"}, {"time": "2026-06-14 00:27:38", "symbol": "COAIUSDT", "direction": "long", "qty": 239.0, "entry": 0.5621, "pnl": 24.59, "result": "\u6b62\u76c8"}];
+const ALL_TRADES = [{"time": "2026-06-10 00:18:38", "close_time": "2026-06-10 00:32:39", "symbol": "ZECUSDT", "direction": "short", "qty": 0.931, "entry": 430.22, "pnl": -7.82, "result": "止損"}, {"time": "2026-06-10 01:13:36", "close_time": "2026-06-10 03:18:23", "symbol": "STGUSDT", "direction": "long", "qty": 713.0, "entry": 0.2825, "pnl": 12.14, "result": "止盈"}, {"time": "2026-06-10 01:13:38", "close_time": "2026-06-10 02:04:47", "symbol": "CHZUSDT", "direction": "long", "qty": 3513.0, "entry": 0.02854, "pnl": -2.06, "result": "止損"}, {"time": "2026-06-10 14:59:15", "close_time": "2026-06-10 22:10:04", "symbol": "GWEIUSDT", "direction": "short", "qty": 1257.0, "entry": 0.17923068, "pnl": 0.64, "result": "止盈"}, {"time": "2026-06-10 15:20:26", "close_time": "2026-06-10 15:49:19", "symbol": "CHIPUSDT", "direction": "long", "qty": 3638.0, "entry": 0.03454, "pnl": -2.49, "result": "止損"}, {"time": "2026-06-10 15:20:28", "close_time": "2026-06-10 20:36:41", "symbol": "ROBOUSDT", "direction": "short", "qty": 3036.0, "entry": 0.0206, "pnl": 0.49, "result": "止盈"}, {"time": "2026-06-10 16:04:13", "close_time": "2026-06-11 08:21:37", "symbol": "CHIPUSDT", "direction": "short", "qty": 3638.0, "entry": 0.03363, "pnl": 7.33, "result": "止盈"}, {"time": "2026-06-10 20:46:54", "close_time": "2026-06-11 00:22:23", "symbol": "SENTUSDT", "direction": "short", "qty": 4061.0, "entry": 0.01526, "pnl": -0.86, "result": "止損"}, {"time": "2026-06-10 22:59:49", "close_time": "2026-06-11 00:25:36", "symbol": "GWEIUSDT", "direction": "short", "qty": 714.0, "entry": 0.17553008, "pnl": -0.48, "result": "止損"}, {"time": "2026-06-11 01:04:35", "close_time": "2026-06-11 06:21:06", "symbol": "GENIUSUSDT", "direction": "short", "qty": 621.0, "entry": 0.48327246, "pnl": 8.98, "result": "止盈"}, {"time": "2026-06-11 01:04:37", "close_time": "2026-06-11 01:24:40", "symbol": "OPGUSDT", "direction": "long", "qty": 1560.0, "entry": 0.1537, "pnl": -5.41, "result": "止損"}, {"time": "2026-06-11 01:04:39", "close_time": "2026-06-11 01:55:30", "symbol": "1000RATSUSDT", "direction": "short", "qty": 5779.0, "entry": 0.03319522, "pnl": -5.23, "result": "止損"}, {"time": "2026-06-11 01:04:41", "close_time": "2026-06-11 04:53:12", "symbol": "CHZUSDT", "direction": "long", "qty": 5502.0, "entry": 0.02793, "pnl": -3.5, "result": "止損"}, {"time": "2026-06-11 02:09:39", "close_time": "2026-06-11 02:15:23", "symbol": "JCTUSDT", "direction": "short", "qty": 30762.0, "entry": 0.00643537, "pnl": -7.76, "result": "止損"}, {"time": "2026-06-11 02:09:41", "close_time": "2026-06-11 08:11:58", "symbol": "SOONUSDT", "direction": "short", "qty": 923.0, "entry": 0.1713, "pnl": -1.67, "result": "止損"}, {"time": "2026-06-11 02:15:33", "close_time": "2026-06-11 07:51:40", "symbol": "JCTUSDT", "direction": "long", "qty": 30762.0, "entry": 0.00663562, "pnl": -4.61, "result": "止損"}, {"time": "2026-06-11 08:47:50", "close_time": "2026-06-11 10:14:30", "symbol": "OPNUSDT", "direction": "long", "qty": 3138.0, "entry": 0.0983, "pnl": 9.57, "result": "止盈"}, {"time": "2026-06-11 08:47:52", "close_time": "2026-06-11 09:03:43", "symbol": "HUSDT", "direction": "long", "qty": 2408.0, "entry": 0.10249583, "pnl": 3.33, "result": "止盈"}, {"time": "2026-06-11 08:47:54", "close_time": "2026-06-11 10:31:39", "symbol": "ORDIUSDT", "direction": "long", "qty": 60.9, "entry": 3.238, "pnl": -1.91, "result": "止損"}, {"time": "2026-06-11 08:47:56", "close_time": "2026-06-12 17:00:11", "symbol": "STABLEUSDT", "direction": "short", "qty": 4705.0, "entry": 0.03342, "pnl": -3.78, "result": "止損"}, {"time": "2026-06-11 08:47:58", "close_time": "2026-06-11 09:26:03", "symbol": "QUSDT", "direction": "short", "qty": 7038.0, "entry": 0.01787191, "pnl": -3.9, "result": "止損"}, {"time": "2026-06-11 09:53:10", "close_time": "2026-06-11 11:48:36", "symbol": "MORPHOUSDT", "direction": "short", "qty": 95.4, "entry": 1.99493878, "pnl": -2.39, "result": "止損"}, {"time": "2026-06-11 09:53:12", "close_time": "2026-06-11 18:17:53", "symbol": "IPUSDT", "direction": "long", "qty": 527.4, "entry": 0.2893, "pnl": -0.72, "result": "止損"}, {"time": "2026-06-11 10:59:02", "close_time": "2026-06-11 12:42:00", "symbol": "USDCUSDT", "direction": "long", "qty": 212.0, "entry": 1.000317, "pnl": 0.14, "result": "止盈"}, {"time": "2026-06-11 10:59:04", "close_time": "2026-06-11 15:10:45", "symbol": "UBUSDT", "direction": "short", "qty": 1214.0, "entry": 0.13957239, "pnl": 18.48, "result": "止盈"}, {"time": "2026-06-11 12:04:46", "close_time": "2026-06-11 17:32:50", "symbol": "SENTUSDT", "direction": "short", "qty": 11425.0, "entry": 0.01509, "pnl": 2.37, "result": "止盈"}, {"time": "2026-06-11 13:09:09", "close_time": "2026-06-11 15:12:11", "symbol": "ATOMUSDT", "direction": "short", "qty": 104.79, "entry": 1.834, "pnl": -5.14, "result": "止損"}, {"time": "2026-06-11 15:19:45", "close_time": "2026-06-11 16:05:29", "symbol": "JCTUSDT", "direction": "short", "qty": 36440.0, "entry": 0.00627454, "pnl": -4.88, "result": "止損"}, {"time": "2026-06-11 15:19:47", "close_time": "2026-06-12 08:02:26", "symbol": "SOONUSDT", "direction": "short", "qty": 1046.0, "entry": 0.1751, "pnl": 6.78, "result": "止盈"}, {"time": "2026-06-11 16:25:40", "close_time": "2026-06-11 16:58:21", "symbol": "龙虾USDT", "direction": "short", "qty": 16610.0, "entry": 0.01128, "pnl": -2.89, "result": "止損"}, {"time": "2026-06-11 17:30:15", "close_time": "2026-06-12 01:32:55", "symbol": "PENGUUSDT", "direction": "short", "qty": 28390.0, "entry": 0.006727, "pnl": -1.32, "result": "止損"}, {"time": "2026-06-11 18:34:12", "close_time": "2026-06-12 01:49:58", "symbol": "WLFIUSDT", "direction": "short", "qty": 3637.0, "entry": 0.05905, "pnl": -3.09, "result": "止損"}, {"time": "2026-06-11 19:38:20", "close_time": "2026-06-11 20:01:36", "symbol": "BTWUSDT", "direction": "short", "qty": 1954.0, "entry": 0.0870755, "pnl": -4.28, "result": "止損"}, {"time": "2026-06-11 20:43:24", "close_time": "2026-06-11 21:23:40", "symbol": "USUSDT", "direction": "short", "qty": 13461.0, "entry": 0.01257584, "pnl": -3.28, "result": "止損"}, {"time": "2026-06-11 22:46:04", "close_time": "2026-06-12 14:30:23", "symbol": "TRUMPUSDT", "direction": "long", "qty": 95.57, "entry": 1.717, "pnl": 3.62, "result": "止盈"}, {"time": "2026-06-12 02:37:49", "close_time": "2026-06-12 03:07:01", "symbol": "HMSTRUSDT", "direction": "long", "qty": 428779.0, "entry": 0.0003072, "pnl": -0.41, "result": "止損"}, {"time": "2026-06-12 02:37:51", "close_time": "2026-06-12 03:08:05", "symbol": "POWERUSDT", "direction": "long", "qty": 1097.0, "entry": 0.10498187, "pnl": -2.75, "result": "止損"}, {"time": "2026-06-12 03:44:13", "close_time": "2026-06-12 05:52:27", "symbol": "EPICUSDT", "direction": "long", "qty": 201.1, "entry": 0.64486713, "pnl": -2.24, "result": "止損"}, {"time": "2026-06-12 03:44:14", "close_time": "2026-06-12 04:39:16", "symbol": "BANKUSDT", "direction": "long", "qty": 2440.0, "entry": 0.04651672, "pnl": -1.4, "result": "止損"}, {"time": "2026-06-12 04:50:15", "close_time": "2026-06-12 05:51:02", "symbol": "PYTHUSDT", "direction": "long", "qty": 2983.0, "entry": 0.03760052, "pnl": -0.72, "result": "止損"}, {"time": "2026-06-12 05:55:22", "close_time": "2026-06-12 06:42:29", "symbol": "COLLECTUSDT", "direction": "long", "qty": 2044.0, "entry": 0.0619101, "pnl": -3.75, "result": "止損"}, {"time": "2026-06-12 05:55:24", "close_time": "2026-06-12 07:42:49", "symbol": "DEXEUSDT", "direction": "long", "qty": 5.17, "entry": 21.35509478, "pnl": -2.14, "result": "止損"}, {"time": "2026-06-12 07:00:02", "close_time": "2026-06-12 13:14:54", "symbol": "CRVUSDT", "direction": "long", "qty": 439.6, "entry": 0.2544, "pnl": 1.2, "result": "止盈"}, {"time": "2026-06-13 15:12:53", "close_time": "2026-06-13 18:44:12", "symbol": "OPUSDT", "direction": "long", "qty": 6635.3, "entry": 0.1043, "pnl": 19.93, "result": "止盈"}, {"time": "2026-06-13 15:12:55", "close_time": "2026-06-13 15:14:29", "symbol": "CRVUSDT", "direction": "long", "qty": 2834.0, "entry": 0.2344, "pnl": 0.05, "result": "止盈"}, {"time": "2026-06-13 16:13:15", "close_time": "2026-06-14 00:15:13", "symbol": "INJUSDT", "direction": "long", "qty": 108.5, "entry": 5.29020922, "pnl": -8.49, "result": "止損"}, {"time": "2026-06-13 17:43:40", "close_time": "2026-06-13 23:07:04", "symbol": "CRVUSDT", "direction": "long", "qty": 2874.7, "entry": 0.2339, "pnl": 20.04, "result": "止盈"}, {"time": "2026-06-13 19:45:25", "close_time": "2026-06-14 05:41:21", "symbol": "BTCUSDT", "direction": "long", "qty": 0.061, "entry": 63879.4, "pnl": 26.51, "result": "止盈"}, {"time": "2026-06-13 21:31:52", "close_time": "2026-06-13 23:00:07", "symbol": "TAOUSDT", "direction": "long", "qty": 1.925, "entry": 250.57671169, "pnl": 23.92, "result": "止盈"}, {"time": "2026-06-13 23:02:52", "close_time": "2026-06-14 01:22:26", "symbol": "ESPORTSUSDT", "direction": "long", "qty": 257.0, "entry": 0.21531661, "pnl": -11.63, "result": "止損"}, {"time": "2026-06-13 23:19:44", "close_time": "2026-06-14 00:04:16", "symbol": "DOGEUSDT", "direction": "long", "qty": 19835.0, "entry": 0.08867, "pnl": -11.42, "result": "止損"}, {"time": "2026-06-13 23:27:16", "close_time": "2026-06-14 08:28:58", "symbol": "TRUMPUSDT", "direction": "long", "qty": 164.22, "entry": 2.236, "pnl": -11.81, "result": "止損"}, {"time": "2026-06-14 00:27:38", "close_time": "2026-06-14 03:26:43", "symbol": "COAIUSDT", "direction": "long", "qty": 239.0, "entry": 0.5621, "pnl": 24.59, "result": "止盈"}, {"time": "2026-06-14 00:27:39", "close_time": "2026-06-14 05:41:59", "symbol": "ETHUSDT", "direction": "long", "qty": 1.938, "entry": 1673.56, "pnl": 24.33, "result": "止盈"}, {"time": "2026-06-14 01:28:01", "close_time": "2026-06-14 12:53:09", "symbol": "1000PEPEUSDT", "direction": "long", "qty": 494438.0, "entry": 0.00285229, "pnl": -11.65, "result": "止損"}, {"time": "2026-06-14 03:40:18", "close_time": "2026-06-14 04:20:37", "symbol": "COAIUSDT", "direction": "long", "qty": 199.0, "entry": 0.6876, "pnl": -11.57, "result": "止損"}, {"time": "2026-06-14 04:40:39", "close_time": "2026-06-14 06:54:27", "symbol": "DOGEUSDT", "direction": "long", "qty": 20948.0, "entry": 0.08765, "pnl": 10.98, "result": "止盈"}, {"time": "2026-06-14 06:41:01", "close_time": "2026-06-14 13:11:27", "symbol": "ADAUSDT", "direction": "long", "qty": 7742.0, "entry": 0.1721, "pnl": -0.11, "result": "止損"}, {"time": "2026-06-14 06:41:03", "close_time": "2026-06-14 13:11:20", "symbol": "HYPEUSDT", "direction": "long", "qty": 15.02, "entry": 60.416, "pnl": -4.49, "result": "止損"}, {"time": "2026-06-14 07:41:23", "close_time": "2026-06-14 13:11:23", "symbol": "COAIUSDT", "direction": "long", "qty": 136.0, "entry": 0.428, "pnl": 5.44, "result": "止盈"}, {"time": "2026-06-14 09:42:07", "close_time": "2026-06-14 13:17:14", "symbol": "SOLUSDT", "direction": "long", "qty": 23.76, "entry": 68.89, "pnl": -11.78, "result": "止損"}, {"time": "2026-06-14 14:01:04", "close_time": "2026-06-14 14:23:51", "symbol": "BEATUSDT", "direction": "long", "qty": 23.0, "entry": 7.18541739, "pnl": -11.82, "result": "止損"}];
+const POSITIONS  = [{"symbol": "FILUSDT", "direction": "long", "qty": 1647.1, "entry": 0.766, "price": 0.77, "upnl": 0.0, "pct": 0.52}, {"symbol": "JCTUSDT", "direction": "long", "qty": 27714.0, "entry": 0.00699582, "price": 0.007137, "upnl": 0.0, "pct": 2.02}, {"symbol": "MEGAUSDT", "direction": "long", "qty": 6430.0, "entry": 0.06337797, "price": 0.0648, "upnl": 0.0, "pct": 2.24}, {"symbol": "NEARUSDT", "direction": "long", "qty": 365.0, "entry": 2.122, "price": 2.11, "upnl": 0.0, "pct": -0.57}, {"symbol": "TAOUSDT", "direction": "long", "qty": 1.421, "entry": 273.24513723, "price": 269.79, "upnl": 0.0, "pct": -1.26}];
 
-new Chart(document.getElementById('pnlChart'),{
-  type:'bar',
-  data:{
-    labels:DAYS,
-    datasets:[
-      {type:'bar',label:'止盈',data:DWIN,backgroundColor:'#5DCAA5',borderRadius:3},
-      {type:'bar',label:'止損',data:DLOSS,backgroundColor:'#F0997B',borderRadius:3},
-      {type:'line',label:'累積',data:CUM,borderColor:'#378ADD',backgroundColor:'transparent',
-        pointBackgroundColor:'#378ADD',pointRadius:3,tension:0.3,yAxisID:'y2'}
-    ]
-  },
-  options:{responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{display:false}},
-    scales:{
-      y:{beginAtZero:true,ticks:{callback:v=>'$'+v,font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}},
-      y2:{position:'right',ticks:{callback:v=>'$'+v,font:{size:10}},grid:{display:false}}
-    }
+// ── 工具 ─────────────────────────────────────────────────────
+const r2 = v => Math.round(v * 100) / 100;
+const r1 = v => Math.round(v * 10) / 10;
+
+function filterTrades(period) {
+  if (period === 'all') return ALL_TRADES;
+  const now = new Date();
+  let start;
+  if (period === 'week') {
+    const d = new Date(now);
+    d.setHours(0,0,0,0);
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    start = d;
+  } else if (period === 'month') {
+    start = new Date(now.getFullYear(), now.getMonth(), 1);
+  } else if (period === '30d') {
+    start = new Date(now - 30 * 86400000);
   }
-});
+  return ALL_TRADES.filter(t => new Date(t.time) >= start);
+}
 
-new Chart(document.getElementById('symChart'),{
-  type:'bar',
-  data:{
-    labels:SYML,
-    datasets:[{data:SYMR,
-      backgroundColor:SYMR.map(v=>v>=65?'#5DCAA5':v>=50?'#FAC775':'#F0997B'),
-      borderRadius:3}]
-  },
-  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{display:false}},
-    scales:{
-      x:{min:0,max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}},
-      y:{ticks:{font:{size:11}}}
+function computeStats(trades) {
+  if (!trades.length) return null;
+  const wins   = trades.filter(t => t.pnl >= 0);
+  const losses = trades.filter(t => t.pnl < 0);
+  const totalPnl = trades.reduce((s, t) => s + t.pnl, 0);
+
+  // Daily PnL
+  const dailyW = {}, dailyL = {};
+  trades.forEach(t => {
+    const d = t.time.slice(0,10);
+    if (t.pnl >= 0) dailyW[d] = (dailyW[d]||0) + t.pnl;
+    else             dailyL[d] = (dailyL[d]||0) + Math.abs(t.pnl);
+  });
+  const days = [...new Set(trades.map(t=>t.time.slice(0,10)))].sort();
+  let cum = 0;
+  const cumPnl = days.map(d => { cum += (dailyW[d]||0)-(dailyL[d]||0); return r2(cum); });
+
+  // Symbol PnL & WR
+  const symPnl = {}, symW = {}, symT = {};
+  trades.forEach(t => {
+    symPnl[t.symbol] = (symPnl[t.symbol]||0) + t.pnl;
+    symT[t.symbol]   = (symT[t.symbol]||0) + 1;
+    if (t.pnl >= 0) symW[t.symbol] = (symW[t.symbol]||0) + 1;
+  });
+
+  // Hourly
+  const hourW = Array(24).fill(0), hourL = Array(24).fill(0);
+  trades.forEach(t => {
+    const h = parseInt(t.time.slice(11,13));
+    if (t.pnl >= 0) hourW[h]++; else hourL[h]++;
+  });
+
+  // Weekly (0=Mon)
+  const weekW = Array(7).fill(0), weekL = Array(7).fill(0);
+  trades.forEach(t => {
+    const dow = (new Date(t.time).getDay() + 6) % 7;
+    if (t.pnl >= 0) weekW[dow]++; else weekL[dow]++;
+  });
+
+  // Max consecutive loss
+  let maxCL = 0, curCL = 0;
+  [...trades].sort((a,b)=>a.time.localeCompare(b.time)).forEach(t => {
+    if (t.pnl < 0) { curCL++; maxCL = Math.max(maxCL, curCL); } else curCL = 0;
+  });
+
+  // Max drawdown
+  let peak = 0, maxDD = 0, runC = 0;
+  [...trades].sort((a,b)=>a.time.localeCompare(b.time)).forEach(t => {
+    runC += t.pnl;
+    peak = Math.max(peak, runC);
+    maxDD = Math.max(maxDD, peak - runC);
+  });
+
+  // Avg holding hours
+  const holds = trades
+    .filter(t => t.close_time)
+    .map(t => (new Date(t.close_time) - new Date(t.time)) / 3600000);
+  const avgHold = holds.length ? holds.reduce((s,v)=>s+v,0)/holds.length : null;
+
+  return {
+    total: trades.length, wins: wins.length, losses: losses.length,
+    totalPnl: r2(totalPnl),
+    winRate: r1(wins.length / trades.length * 100),
+    best: r2(Math.max(...trades.map(t=>t.pnl))),
+    worst: r2(Math.min(...trades.map(t=>t.pnl))),
+    avgHold: avgHold ? r1(avgHold) : null,
+    maxCL, maxDD: r2(maxDD),
+    days,
+    dailyW: days.map(d => r2(dailyW[d]||0)),
+    dailyL: days.map(d => r2(dailyL[d]||0)),
+    cumPnl,
+    symPnl, symW, symT,
+    hourW, hourL, weekW, weekL,
+    recent: [...trades].sort((a,b)=>b.time.localeCompare(a.time)).slice(0,10),
+  };
+}
+
+// ── 卡片 ─────────────────────────────────────────────────────
+function renderCards(s) {
+  const pnlCls = s.totalPnl >= 0 ? 'pos' : 'neg';
+  const pnlSign = s.totalPnl >= 0 ? '+' : '';
+
+  document.getElementById('cards1').innerHTML = `
+    <div class="metric"><div class="lbl">總損益</div>
+      <div class="val ${pnlCls}">${pnlSign}$${Math.abs(s.totalPnl)}</div></div>
+    <div class="metric"><div class="lbl">勝率</div>
+      <div class="val">${s.winRate}%</div>
+      <div class="sub2">${s.wins}勝 / ${s.losses}敗</div></div>
+    <div class="metric"><div class="lbl">總筆數</div>
+      <div class="val">${s.total} 筆</div></div>
+    <div class="metric"><div class="lbl">最佳 / 最差</div>
+      <div class="val"><span class="pos">+$${s.best}</span></div>
+      <div class="sub2 neg">$${s.worst}</div></div>`;
+
+  const holdStr = s.avgHold !== null
+    ? (s.avgHold >= 1 ? `${r1(s.avgHold)}h` : `${Math.round(s.avgHold*60)}m`)
+    : 'N/A';
+  const ddCls = s.maxDD > 30 ? 'neg' : s.maxDD > 10 ? '' : 'pos';
+
+  document.getElementById('cards2').innerHTML = `
+    <div class="metric"><div class="lbl">最大回撤</div>
+      <div class="val ${ddCls}">-$${s.maxDD}</div></div>
+    <div class="metric"><div class="lbl">最大連虧</div>
+      <div class="val ${s.maxCL >= 5 ? 'neg' : ''}">${s.maxCL} 筆</div></div>
+    <div class="metric"><div class="lbl">平均持倉</div>
+      <div class="val">${holdStr}</div></div>
+    <div class="metric"><div class="lbl">每筆期望值</div>
+      <div class="val ${r2(s.totalPnl/s.total) >= 0 ? 'pos':'neg'}">${r2(s.totalPnl/s.total) >= 0 ? '+' : ''}$${r2(s.totalPnl/s.total)}</div></div>`;
+}
+
+// ── 圖表初始化 ────────────────────────────────────────────────
+let charts = {};
+
+function initCharts() {
+  // PnL Chart (bar + line combo)
+  if (charts.pnl) charts.pnl.destroy();
+  charts.pnl = new Chart(document.getElementById('pnlChart'), {
+    type: 'bar',
+    data: { labels: [], datasets: [
+      { type:'bar', label:'止盈', data:[], backgroundColor:'#5DCAA5', borderRadius:3 },
+      { type:'bar', label:'止損', data:[], backgroundColor:'#F0997B', borderRadius:3 },
+      { type:'line', label:'累積', data:[], borderColor:'#378ADD', backgroundColor:'transparent',
+        pointBackgroundColor:'#378ADD', pointRadius:3, tension:0.3, yAxisID:'y2' }
+    ]},
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{
+        y:{ ticks:{callback:v=>'$'+v, font:{size:10}}, grid:{color:'rgba(0,0,0,0.05)'} },
+        y2:{ position:'right', ticks:{callback:v=>'$'+v, font:{size:10}}, grid:{display:false} }
+      }
     }
-  }
-});
+  });
 
-const el = document.getElementById('recent');
-RECENT.forEach(t=>{
-  const pnl = parseFloat(t.pnl);
-  const sign = pnl>=0?'+':'';
-  const cls = pnl>=0?'tw':'tl';
-  el.innerHTML += `<div class="row">
-    <span><span class="sym">${t.symbol}</span><br><span class="tf">${t.direction} · ${t.time.slice(0,10)}</span></span>
-    <span class="tag ${cls}">${t.result} ${sign}${pnl.toFixed(2)}</span>
-  </div>`;
-});
+  // Symbol PnL (horizontal bar)
+  if (charts.symPnl) charts.symPnl.destroy();
+  charts.symPnl = new Chart(document.getElementById('symPnlChart'), {
+    type: 'bar',
+    data: { labels:[], datasets:[{ data:[], backgroundColor:[], borderRadius:3 }] },
+    options: { indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{ x:{ ticks:{callback:v=>'$'+v, font:{size:10}}, grid:{color:'rgba(0,0,0,0.05)'} },
+               y:{ ticks:{font:{size:10}} } }
+    }
+  });
+
+  // Hourly
+  if (charts.hour) charts.hour.destroy();
+  charts.hour = new Chart(document.getElementById('hourChart'), {
+    type:'bar',
+    data:{ labels: Array.from({length:24},(_,i)=>String(i).padStart(2,'0')),
+           datasets:[
+             { label:'止盈', data:Array(24).fill(0), backgroundColor:'#5DCAA5', borderRadius:2, stack:'h' },
+             { label:'止損', data:Array(24).fill(0), backgroundColor:'#F0997B', borderRadius:2, stack:'h' },
+           ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{ x:{ticks:{font:{size:9}}}, y:{ticks:{stepSize:1, font:{size:10}},
+        grid:{color:'rgba(0,0,0,0.05)'}} }
+    }
+  });
+
+  // Weekly
+  if (charts.week) charts.week.destroy();
+  charts.week = new Chart(document.getElementById('weekChart'), {
+    type:'bar',
+    data:{ labels:['週一','週二','週三','週四','週五','週六','週日'],
+           datasets:[
+             { label:'止盈', data:Array(7).fill(0), backgroundColor:'#5DCAA5', borderRadius:3 },
+             { label:'止損', data:Array(7).fill(0), backgroundColor:'#F0997B', borderRadius:3 },
+           ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{ x:{ticks:{font:{size:11}}}, y:{ticks:{stepSize:1, font:{size:10}},
+        grid:{color:'rgba(0,0,0,0.05)'}} }
+    }
+  });
+
+  // Symbol Win Rate
+  if (charts.symWr) charts.symWr.destroy();
+  charts.symWr = new Chart(document.getElementById('symWrChart'), {
+    type:'bar',
+    data:{ labels:[], datasets:[{ data:[], backgroundColor:[], borderRadius:3 }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{ x:{min:0,max:100, ticks:{callback:v=>v+'%',font:{size:10}}},
+               y:{ticks:{font:{size:10}}} }
+    }
+  });
+}
+
+// ── 圖表更新 ─────────────────────────────────────────────────
+function updateCharts(s) {
+  // Daily PnL
+  charts.pnl.data.labels = s.days;
+  charts.pnl.data.datasets[0].data = s.dailyW;
+  charts.pnl.data.datasets[1].data = s.dailyL;
+  charts.pnl.data.datasets[2].data = s.cumPnl;
+  charts.pnl.update();
+
+  // Symbol PnL ranking (sorted by PnL, top 12)
+  const symPnlSorted = Object.entries(s.symPnl)
+    .sort((a,b)=>b[1]-a[1]).slice(0,12);
+  charts.symPnl.data.labels = symPnlSorted.map(([sym])=>sym.replace('USDT',''));
+  charts.symPnl.data.datasets[0].data = symPnlSorted.map(([,v])=>r2(v));
+  charts.symPnl.data.datasets[0].backgroundColor = symPnlSorted.map(([,v])=>v>=0?'#5DCAA5':'#F0997B');
+  charts.symPnl.update();
+
+  // Hourly
+  charts.hour.data.datasets[0].data = s.hourW;
+  charts.hour.data.datasets[1].data = s.hourL;
+  charts.hour.update();
+
+  // Weekly
+  charts.week.data.datasets[0].data = s.weekW;
+  charts.week.data.datasets[1].data = s.weekL;
+  charts.week.update();
+
+  // Symbol WR (top 10 by total trades)
+  const symWrSorted = Object.entries(s.symT)
+    .map(([sym,t]) => ({ sym, wr: r1((s.symW[sym]||0)/t*100), t }))
+    .sort((a,b)=>b.t-a.t).slice(0,10)
+    .sort((a,b)=>b.wr-a.wr);
+  charts.symWr.data.labels = symWrSorted.map(d=>d.sym.replace('USDT',''));
+  charts.symWr.data.datasets[0].data = symWrSorted.map(d=>d.wr);
+  charts.symWr.data.datasets[0].backgroundColor = symWrSorted.map(d=>
+    d.wr>=65?'#5DCAA5':d.wr>=50?'#FAC775':'#F0997B');
+  charts.symWr.update();
+}
+
+// ── 持倉渲染 ─────────────────────────────────────────────────
+function renderPositions() {
+  const el = document.getElementById('posSection');
+  if (!POSITIONS.length) {
+    el.innerHTML = '<div class="empty">目前無開倉中的倉位</div>';
+    return;
+  }
+  let html = `<table class="tbl"><thead><tr>
+    <th>幣種</th><th>方向</th><th>手數</th><th>入場價</th><th>現價</th><th>漲跌%</th><th>未實現損益</th>
+  </tr></thead><tbody>`;
+  POSITIONS.forEach(p => {
+    const upnlCls = p.upnl >= 0 ? 'pos' : 'neg';
+    const upnlSign = p.upnl >= 0 ? '+' : '';
+    const pctCls = p.pct >= 0 ? 'pos' : 'neg';
+    const dirTag = p.direction === 'long'
+      ? '<span class="pos-tag-l">多</span>'
+      : '<span class="pos-tag-s">空</span>';
+    html += `<tr>
+      <td><strong>${p.symbol}</strong></td>
+      <td>${dirTag}</td>
+      <td>${p.qty}</td>
+      <td>${p.entry}</td>
+      <td>${p.price}</td>
+      <td class="${pctCls}">${p.pct >= 0 ? '+' : ''}${p.pct}%</td>
+      <td class="${upnlCls}">${upnlSign}$${Math.abs(p.upnl)}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+// ── 最近交易渲染 ──────────────────────────────────────────────
+function renderRecent(trades) {
+  const el = document.getElementById('recentSection');
+  if (!trades.length) { el.innerHTML = '<div class="empty">無交易紀錄</div>'; return; }
+  let html = '';
+  trades.forEach(t => {
+    const pnl = t.pnl;
+    const sign = pnl >= 0 ? '+' : '';
+    const cls  = pnl >= 0 ? 'tw' : 'tl';
+    const holdStr = t.close_time
+      ? (() => {
+          const h = (new Date(t.close_time) - new Date(t.time)) / 3600000;
+          return h >= 1 ? `${r1(h)}h` : `${Math.round(h*60)}m`;
+        })()
+      : '';
+    html += `<div class="row-t">
+      <span>
+        <span class="sym">${t.symbol}</span>
+        <span class="tf"> · ${t.direction} · ${t.time.slice(0,10)}${holdStr ? ' · 持倉'+holdStr : ''}</span>
+      </span>
+      <span class="tag ${cls}">${t.result} ${sign}$${Math.abs(pnl).toFixed(2)}</span>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+// ── 主渲染 ───────────────────────────────────────────────────
+function renderAll(trades) {
+  const s = computeStats(trades);
+  if (!s) {
+    document.getElementById('cards1').innerHTML =
+    document.getElementById('cards2').innerHTML = '<div class="empty">無資料</div>';
+    return;
+  }
+  renderCards(s);
+  updateCharts(s);
+  renderRecent(s.recent);
+}
+
+// ── 篩選按鈕 ─────────────────────────────────────────────────
+function setFilter(f) {
+  ['week','month','30d','all'].forEach(k => {
+    document.getElementById('btn-'+k).classList.toggle('active', k===f);
+  });
+  renderAll(filterTrades(f));
+}
+
+// ── 初始化 ───────────────────────────────────────────────────
+initCharts();
+renderPositions();
+renderAll(ALL_TRADES);
 </script>
 </body>
 </html>
