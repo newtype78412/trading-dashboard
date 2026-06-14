@@ -3,459 +3,461 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BinanceBot 績效儀表板</title>
+<title>交易機器人績效儀表板</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#1a1a1a;padding:20px}
-h1{font-size:20px;font-weight:500;margin-bottom:2px}
-.sub{font-size:13px;color:#888;margin-bottom:12px}
-.filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
-.filters button{padding:6px 14px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;color:#555;transition:all .15s}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#1a1a1a;padding:16px}
+.page-hdr{margin-bottom:12px}
+.page-hdr h1{font-size:19px;font-weight:600}
+.page-hdr .sub{font-size:12px;color:#999;margin-top:2px}
+.tab-nav{display:flex;gap:0;margin-bottom:18px;border-bottom:2px solid #e0e0e0}
+.tab-btn{padding:9px 20px;border:none;background:transparent;cursor:pointer;font-size:13px;font-weight:500;color:#888;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tab-btn.active{color:#1a1a1a;border-bottom-color:var(--accent,#378ADD)}
+.tab-btn:hover:not(.active){color:#555;background:#f0f0f0}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+.tab-subtitle{font-size:12px;color:#888;margin-bottom:14px}
+.filters{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.filters button{padding:5px 13px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;font-size:12px;color:#555;transition:all .15s}
 .filters button.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
-.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
 @media(max-width:900px){.grid4{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
-@media(max-width:500px){.grid4{grid-template-columns:repeat(2,1fr)}}
-.card{background:#fff;border-radius:12px;padding:16px 20px;border:1px solid #e8e8e8;margin-bottom:16px}
-.metric{background:#f9f9f9;border-radius:8px;padding:14px;text-align:center;border:1px solid #ececec}
-.metric .lbl{font-size:11px;color:#888;margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em}
-.metric .val{font-size:20px;font-weight:500}
+.card{background:#fff;border-radius:12px;padding:16px 18px;border:1px solid #e8e8e8;margin-bottom:14px}
+.metric{background:#f9f9f9;border-radius:8px;padding:13px;text-align:center;border:1px solid #ececec}
+.metric .lbl{font-size:10px;color:#888;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.metric .val{font-size:19px;font-weight:500}
 .metric .sub2{font-size:11px;color:#aaa;margin-top:3px}
 .pos{color:#1D9E75}.neg{color:#D85A30}.neu{color:#185FA5}
-.hdr{font-size:12px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
-.ch-wrap{position:relative;height:220px}
-.ch-wrap-sm{position:relative;height:180px}
-.row-t{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.hdr{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.ch-wrap{position:relative;height:200px}
+.ch-wrap-sm{position:relative;height:165px}
+.legend{display:flex;gap:14px;font-size:11px;color:#888;margin-bottom:8px;flex-wrap:wrap}
+.ld{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:3px;vertical-align:middle}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;padding:7px 9px;font-size:10px;color:#888;border-bottom:2px solid #f0f0f0;font-weight:500}
+.tbl td{padding:8px 9px;border-bottom:1px solid #f5f5f5}
+.tbl tr:last-child td{border:none}
+.row-t{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
 .row-t:last-child{border:none}
 .sym{font-weight:500}.tf{font-size:11px;color:#aaa}
-.tag{display:inline-block;font-size:11px;padding:3px 10px;border-radius:6px;font-weight:500}
-.tw{background:#EAF3DE;color:#3B6D11}.tl{background:#FCEBEB;color:#A32D2D}
-.pos-tag-l{background:#EAF3DE;color:#3B6D11;display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px}
-.pos-tag-s{background:#FCEBEB;color:#A32D2D;display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px}
-.tbl{width:100%;border-collapse:collapse;font-size:13px}
-.tbl th{text-align:left;padding:8px 10px;font-size:11px;color:#888;border-bottom:2px solid #f0f0f0;font-weight:500}
-.tbl td{padding:9px 10px;border-bottom:1px solid #f5f5f5}
-.tbl tr:last-child td{border:none}
-.legend{display:flex;gap:16px;font-size:12px;color:#888;margin-bottom:8px;flex-wrap:wrap}
-.ld{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
-.updated{font-size:11px;color:#bbb;text-align:right;margin-top:8px}
-.empty{text-align:center;color:#bbb;padding:24px;font-size:13px}
+.tag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:6px;font-weight:500}
+.tw{background:#EAF3DE;color:#3B6D11}.tl{background:#FCEBEB;color:#A32D2D}.tn{background:#EEF3FB;color:#185FA5}
+.pos-tag-l{background:#EAF3DE;color:#3B6D11;display:inline-block;font-size:11px;padding:2px 7px;border-radius:4px}
+.pos-tag-s{background:#FCEBEB;color:#A32D2D;display:inline-block;font-size:11px;padding:2px 7px;border-radius:4px}
+.empty{text-align:center;color:#bbb;padding:22px;font-size:13px}
 </style>
 </head>
 <body>
-<h1>BinanceBot 績效儀表板</h1>
-<div class="sub">Scoring 策略 · Vegas+QQE · 最後更新：2026-06-14 23:34</div>
 
-<div class="filters">
-  <button onclick="setFilter('week')" id="btn-week">本週</button>
-  <button onclick="setFilter('month')" id="btn-month">本月</button>
-  <button onclick="setFilter('30d')" id="btn-30d">30天</button>
-  <button onclick="setFilter('all')" id="btn-all" class="active">全部</button>
+<div class="page-hdr">
+  <h1>交易機器人績效儀表板</h1>
+  <div class="sub">GoldBot &nbsp;·&nbsp; BinanceBot &nbsp;·&nbsp; SMC Crypto &nbsp;|&nbsp; 最後更新：2026-06-15 01:35</div>
 </div>
 
-<!-- Summary Cards Row 1 -->
-<div class="grid4" id="cards1"></div>
-<!-- Summary Cards Row 2 -->
-<div class="grid4" id="cards2"></div>
+<div class="tab-nav">
+  <button class="tab-btn active" data-tab="gold"    onclick="switchTab('gold')"    style="--accent:#D4A84B">GoldBot</button>
+  <button class="tab-btn"        data-tab="binance" onclick="switchTab('binance')" style="--accent:#378ADD">BinanceBot</button>
+  <button class="tab-btn"        data-tab="smc"     onclick="switchTab('smc')"     style="--accent:#7C5CBF">SMC Crypto</button>
+</div>
 
-<!-- Charts Row 1: Daily PnL | Symbol PnL Ranking -->
-<div class="grid2">
-  <div class="card">
-    <div class="hdr">每日損益 + 累積 PnL</div>
-    <div class="legend">
-      <span><span class="ld" style="background:#5DCAA5"></span>止盈</span>
-      <span><span class="ld" style="background:#F0997B"></span>止損</span>
-      <span><span class="ld" style="background:#378ADD;border-radius:50%"></span>累積</span>
+<!-- GoldBot Tab -->
+<div id="tab-gold" class="tab-pane active">
+  <div class="tab-subtitle">黃金自動交易 · signals_log.csv · 損益單位：點數</div>
+  <div class="filters">
+    <button onclick="ctrl.gold.setFilter('week')"  id="gold-btn-week">本週</button>
+    <button onclick="ctrl.gold.setFilter('month')" id="gold-btn-month">本月</button>
+    <button onclick="ctrl.gold.setFilter('30d')"   id="gold-btn-30d">30天</button>
+    <button onclick="ctrl.gold.setFilter('all')"   id="gold-btn-all" class="active">全部</button>
+  </div>
+  <div class="grid4" id="gold-cards1"></div>
+  <div class="grid4" id="gold-cards2"></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="hdr">每日損益 + 累積 PnL（點）</div>
+      <div class="legend">
+        <span><span class="ld" style="background:#5DCAA5"></span>止盈</span>
+        <span><span class="ld" style="background:#F0997B"></span>止損</span>
+        <span><span class="ld" style="background:#D4A84B;border-radius:50%"></span>累積</span>
+      </div>
+      <div class="ch-wrap"><canvas id="gold_pnl"></canvas></div>
     </div>
-    <div class="ch-wrap"><canvas id="pnlChart"></canvas></div>
-  </div>
-  <div class="card">
-    <div class="hdr">幣種總損益排行</div>
-    <div class="ch-wrap"><canvas id="symPnlChart"></canvas></div>
-  </div>
-</div>
-
-<!-- Charts Row 2: Hourly | Weekly -->
-<div class="grid2">
-  <div class="card">
-    <div class="hdr">每小時勝/敗分佈</div>
-    <div class="legend">
-      <span><span class="ld" style="background:#5DCAA5"></span>止盈</span>
-      <span><span class="ld" style="background:#F0997B"></span>止損</span>
+    <div class="card">
+      <div class="hdr">策略總損益排行（點）</div>
+      <div class="ch-wrap"><canvas id="gold_sympnl"></canvas></div>
     </div>
-    <div class="ch-wrap"><canvas id="hourChart"></canvas></div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="hdr">每小時勝/敗分佈</div>
+      <div class="legend">
+        <span><span class="ld" style="background:#5DCAA5"></span>止盈</span>
+        <span><span class="ld" style="background:#F0997B"></span>止損</span>
+      </div>
+      <div class="ch-wrap"><canvas id="gold_hour"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="hdr">星期勝/敗分佈</div>
+      <div class="legend">
+        <span><span class="ld" style="background:#5DCAA5"></span>止盈</span>
+        <span><span class="ld" style="background:#F0997B"></span>止損</span>
+      </div>
+      <div class="ch-wrap-sm"><canvas id="gold_week"></canvas></div>
+    </div>
   </div>
   <div class="card">
-    <div class="hdr">星期勝/敗分佈</div>
-    <div class="legend">
-      <span><span class="ld" style="background:#5DCAA5"></span>止盈</span>
-      <span><span class="ld" style="background:#F0997B"></span>止損</span>
-    </div>
-    <div class="ch-wrap-sm"><canvas id="weekChart"></canvas></div>
+    <div class="hdr">策略勝率排行</div>
+    <div class="ch-wrap-sm"><canvas id="gold_symwr"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="hdr">最近交易紀錄</div>
+    <div id="gold-recent"></div>
   </div>
 </div>
 
-<!-- Symbol Win Rate -->
-<div class="card">
-  <div class="hdr">幣種勝率（前10）</div>
-  <div class="ch-wrap-sm"><canvas id="symWrChart"></canvas></div>
+<!-- BinanceBot Tab -->
+<div id="tab-binance" class="tab-pane">
+  <div class="tab-subtitle">Binance 期貨 · oi_trades_log.csv · Vegas+QQE Scoring</div>
+  <div class="filters">
+    <button onclick="ctrl.binance.setFilter('week')"  id="bb-btn-week">本週</button>
+    <button onclick="ctrl.binance.setFilter('month')" id="bb-btn-month">本月</button>
+    <button onclick="ctrl.binance.setFilter('30d')"   id="bb-btn-30d">30天</button>
+    <button onclick="ctrl.binance.setFilter('all')"   id="bb-btn-all" class="active">全部</button>
+  </div>
+  <div class="grid4" id="bb-cards1"></div>
+  <div class="grid4" id="bb-cards2"></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="hdr">每日損益 + 累積 PnL（USDT）</div>
+      <div class="legend">
+        <span><span class="ld" style="background:#5DCAA5"></span>止盈</span>
+        <span><span class="ld" style="background:#F0997B"></span>止損</span>
+        <span><span class="ld" style="background:#378ADD;border-radius:50%"></span>累積</span>
+      </div>
+      <div class="ch-wrap"><canvas id="bb_pnl"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="hdr">幣種總損益排行（USDT）</div>
+      <div class="ch-wrap"><canvas id="bb_sympnl"></canvas></div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="hdr">每小時勝/敗分佈</div>
+      <div class="legend">
+        <span><span class="ld" style="background:#5DCAA5"></span>止盈</span>
+        <span><span class="ld" style="background:#F0997B"></span>止損</span>
+      </div>
+      <div class="ch-wrap"><canvas id="bb_hour"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="hdr">星期勝/敗分佈</div>
+      <div class="legend">
+        <span><span class="ld" style="background:#5DCAA5"></span>止盈</span>
+        <span><span class="ld" style="background:#F0997B"></span>止損</span>
+      </div>
+      <div class="ch-wrap-sm"><canvas id="bb_week"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="hdr">幣種勝率排行</div>
+    <div class="ch-wrap-sm"><canvas id="bb_symwr"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="hdr">當前持倉</div>
+    <div id="bb-pos"></div>
+  </div>
+  <div class="card">
+    <div class="hdr">最近交易紀錄</div>
+    <div id="bb-recent"></div>
+  </div>
 </div>
 
-<!-- Current Positions -->
-<div class="card">
-  <div class="hdr">當前持倉</div>
-  <div id="posSection"></div>
+<!-- SMC Crypto Tab -->
+<div id="tab-smc" class="tab-pane">
+  <div class="tab-subtitle">SMC 加密貨幣 · smc_live_binance_log.csv · BTC/ETH/SOL/BNB</div>
+  <div class="filters">
+    <button onclick="ctrl.smc.setFilter('week')"  id="smc-btn-week">本週</button>
+    <button onclick="ctrl.smc.setFilter('month')" id="smc-btn-month">本月</button>
+    <button onclick="ctrl.smc.setFilter('30d')"   id="smc-btn-30d">30天</button>
+    <button onclick="ctrl.smc.setFilter('all')"   id="smc-btn-all" class="active">全部</button>
+  </div>
+  <div class="grid4" id="smc-cards1"></div>
+  <div class="grid4" id="smc-cards2"></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="hdr">每日損益 + 累積 PnL（USDT）</div>
+      <div class="legend">
+        <span><span class="ld" style="background:#5DCAA5"></span>止盈</span>
+        <span><span class="ld" style="background:#F0997B"></span>止損</span>
+        <span><span class="ld" style="background:#7C5CBF;border-radius:50%"></span>累積</span>
+      </div>
+      <div class="ch-wrap"><canvas id="smc_pnl"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="hdr">幣種總損益排行（USDT）</div>
+      <div class="ch-wrap"><canvas id="smc_sympnl"></canvas></div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="hdr">每小時勝/敗分佈（UTC）</div>
+      <div class="legend">
+        <span><span class="ld" style="background:#5DCAA5"></span>止盈</span>
+        <span><span class="ld" style="background:#F0997B"></span>止損</span>
+      </div>
+      <div class="ch-wrap"><canvas id="smc_hour"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="hdr">星期勝/敗分佈</div>
+      <div class="legend">
+        <span><span class="ld" style="background:#5DCAA5"></span>止盈</span>
+        <span><span class="ld" style="background:#F0997B"></span>止損</span>
+      </div>
+      <div class="ch-wrap-sm"><canvas id="smc_week"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="hdr">幣種勝率排行</div>
+    <div class="ch-wrap-sm"><canvas id="smc_symwr"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="hdr">最近交易紀錄</div>
+    <div id="smc-recent"></div>
+  </div>
 </div>
-
-<!-- Recent Trades -->
-<div class="card">
-  <div class="hdr">最近交易紀錄</div>
-  <div id="recentSection"></div>
-</div>
-
-<div class="updated">資料來源：Binance API · oi_trades_log.csv</div>
 
 <script>
-const ALL_TRADES = [{"time": "2026-06-10 00:18:38", "close_time": "2026-06-10 00:32:39", "symbol": "ZECUSDT", "direction": "short", "qty": 0.931, "entry": 430.22, "pnl": -7.82, "funding": 0.0, "result": "止損"}, {"time": "2026-06-10 01:13:36", "close_time": "2026-06-10 03:18:23", "symbol": "STGUSDT", "direction": "long", "qty": 713.0, "entry": 0.2825, "pnl": 12.14, "funding": 0.0, "result": "止盈"}, {"time": "2026-06-10 01:13:38", "close_time": "2026-06-10 02:04:47", "symbol": "CHZUSDT", "direction": "long", "qty": 3513.0, "entry": 0.02854, "pnl": -2.06, "funding": 0.0, "result": "止損"}, {"time": "2026-06-10 14:59:15", "close_time": "2026-06-10 22:10:04", "symbol": "GWEIUSDT", "direction": "short", "qty": 1257.0, "entry": 0.17923068, "pnl": 0.64, "funding": 0.2507, "result": "止盈"}, {"time": "2026-06-10 15:20:26", "close_time": "2026-06-10 15:49:19", "symbol": "CHIPUSDT", "direction": "long", "qty": 3638.0, "entry": 0.03454, "pnl": -2.49, "funding": 0.0, "result": "止損"}, {"time": "2026-06-10 15:20:28", "close_time": "2026-06-10 20:36:41", "symbol": "ROBOUSDT", "direction": "short", "qty": 3036.0, "entry": 0.0206, "pnl": 0.49, "funding": 0.0062, "result": "止盈"}, {"time": "2026-06-10 16:04:13", "close_time": "2026-06-11 08:21:37", "symbol": "CHIPUSDT", "direction": "short", "qty": 3638.0, "entry": 0.03363, "pnl": 7.33, "funding": -0.0904, "result": "止盈"}, {"time": "2026-06-10 20:46:54", "close_time": "2026-06-11 00:22:23", "symbol": "SENTUSDT", "direction": "short", "qty": 4061.0, "entry": 0.01526, "pnl": -0.86, "funding": 0.0031, "result": "止損"}, {"time": "2026-06-10 22:59:49", "close_time": "2026-06-11 00:25:36", "symbol": "GWEIUSDT", "direction": "short", "qty": 714.0, "entry": 0.17553008, "pnl": -0.48, "funding": 0.0778, "result": "止損"}, {"time": "2026-06-11 01:04:35", "close_time": "2026-06-11 06:21:06", "symbol": "GENIUSUSDT", "direction": "short", "qty": 621.0, "entry": 0.48327246, "pnl": 8.98, "funding": 0.0147, "result": "止盈"}, {"time": "2026-06-11 01:04:37", "close_time": "2026-06-11 01:24:40", "symbol": "OPGUSDT", "direction": "long", "qty": 1560.0, "entry": 0.1537, "pnl": -5.41, "funding": 0.0, "result": "止損"}, {"time": "2026-06-11 01:04:39", "close_time": "2026-06-11 01:55:30", "symbol": "1000RATSUSDT", "direction": "short", "qty": 5779.0, "entry": 0.03319522, "pnl": -5.23, "funding": 0.0, "result": "止損"}, {"time": "2026-06-11 01:04:41", "close_time": "2026-06-11 04:53:12", "symbol": "CHZUSDT", "direction": "long", "qty": 5502.0, "entry": 0.02793, "pnl": -3.5, "funding": 0.0, "result": "止損"}, {"time": "2026-06-11 02:09:39", "close_time": "2026-06-11 02:15:23", "symbol": "JCTUSDT", "direction": "short", "qty": 30762.0, "entry": 0.00643537, "pnl": -7.76, "funding": 0.0, "result": "止損"}, {"time": "2026-06-11 02:09:41", "close_time": "2026-06-11 08:11:58", "symbol": "SOONUSDT", "direction": "short", "qty": 923.0, "entry": 0.1713, "pnl": -1.67, "funding": 0.0702, "result": "止損"}, {"time": "2026-06-11 02:15:33", "close_time": "2026-06-11 07:51:40", "symbol": "JCTUSDT", "direction": "long", "qty": 30762.0, "entry": 0.00663562, "pnl": -4.61, "funding": -0.0107, "result": "止損"}, {"time": "2026-06-11 08:47:50", "close_time": "2026-06-11 10:14:30", "symbol": "OPNUSDT", "direction": "long", "qty": 3138.0, "entry": 0.0983, "pnl": 9.57, "funding": 0.0, "result": "止盈"}, {"time": "2026-06-11 08:47:52", "close_time": "2026-06-11 09:03:43", "symbol": "HUSDT", "direction": "long", "qty": 2408.0, "entry": 0.10249583, "pnl": 3.33, "funding": 0.118, "result": "止盈"}, {"time": "2026-06-11 08:47:54", "close_time": "2026-06-11 10:31:39", "symbol": "ORDIUSDT", "direction": "long", "qty": 60.9, "entry": 3.238, "pnl": -1.91, "funding": 0.0, "result": "止損"}, {"time": "2026-06-11 08:47:56", "close_time": "2026-06-12 17:00:11", "symbol": "STABLEUSDT", "direction": "short", "qty": 4705.0, "entry": 0.03342, "pnl": -3.78, "funding": 0.0071, "result": "止損"}, {"time": "2026-06-11 08:47:58", "close_time": "2026-06-11 09:26:03", "symbol": "QUSDT", "direction": "short", "qty": 7038.0, "entry": 0.01787191, "pnl": -3.9, "funding": 0.0, "result": "止損"}, {"time": "2026-06-11 09:53:10", "close_time": "2026-06-11 11:48:36", "symbol": "MORPHOUSDT", "direction": "short", "qty": 95.4, "entry": 1.99493878, "pnl": -2.39, "funding": 0.0, "result": "止損"}, {"time": "2026-06-11 09:53:12", "close_time": "2026-06-11 18:17:53", "symbol": "IPUSDT", "direction": "long", "qty": 527.4, "entry": 0.2893, "pnl": -0.72, "funding": 0.0048, "result": "止損"}, {"time": "2026-06-11 10:59:02", "close_time": "2026-06-11 12:42:00", "symbol": "USDCUSDT", "direction": "long", "qty": 212.0, "entry": 1.000317, "pnl": 0.14, "funding": 0.0, "result": "止盈"}, {"time": "2026-06-11 10:59:04", "close_time": "2026-06-11 15:10:45", "symbol": "UBUSDT", "direction": "short", "qty": 1214.0, "entry": 0.13957239, "pnl": 18.48, "funding": 0.0085, "result": "止盈"}, {"time": "2026-06-11 12:04:46", "close_time": "2026-06-11 17:32:50", "symbol": "SENTUSDT", "direction": "short", "qty": 11425.0, "entry": 0.01509, "pnl": 2.37, "funding": 0.0083, "result": "止盈"}, {"time": "2026-06-11 13:09:09", "close_time": "2026-06-11 15:12:11", "symbol": "ATOMUSDT", "direction": "short", "qty": 104.79, "entry": 1.834, "pnl": -5.14, "funding": 0.0, "result": "止損"}, {"time": "2026-06-11 15:19:45", "close_time": "2026-06-11 16:05:29", "symbol": "JCTUSDT", "direction": "short", "qty": 36440.0, "entry": 0.00627454, "pnl": -4.88, "funding": 0.0124, "result": "止損"}, {"time": "2026-06-11 15:19:47", "close_time": "2026-06-12 08:02:26", "symbol": "SOONUSDT", "direction": "short", "qty": 1046.0, "entry": 0.1751, "pnl": 6.78, "funding": 0.2256, "result": "止盈"}, {"time": "2026-06-11 16:25:40", "close_time": "2026-06-11 16:58:21", "symbol": "龙虾USDT", "direction": "short", "qty": 16610.0, "entry": 0.01128, "pnl": -2.89, "funding": 0.0, "result": "止損"}, {"time": "2026-06-11 17:30:15", "close_time": "2026-06-12 01:32:55", "symbol": "PENGUUSDT", "direction": "short", "qty": 28390.0, "entry": 0.006727, "pnl": -1.32, "funding": 0.002, "result": "止損"}, {"time": "2026-06-11 18:34:12", "close_time": "2026-06-12 01:49:58", "symbol": "WLFIUSDT", "direction": "short", "qty": 3637.0, "entry": 0.05905, "pnl": -3.09, "funding": 0.0214, "result": "止損"}, {"time": "2026-06-11 19:38:20", "close_time": "2026-06-11 20:01:36", "symbol": "BTWUSDT", "direction": "short", "qty": 1954.0, "entry": 0.0870755, "pnl": -4.28, "funding": 0.0952, "result": "止損"}, {"time": "2026-06-11 20:43:24", "close_time": "2026-06-11 21:23:40", "symbol": "USUSDT", "direction": "short", "qty": 13461.0, "entry": 0.01257584, "pnl": -3.28, "funding": 0.0, "result": "止損"}, {"time": "2026-06-11 22:46:04", "close_time": "2026-06-12 14:30:23", "symbol": "TRUMPUSDT", "direction": "long", "qty": 95.57, "entry": 1.717, "pnl": 3.62, "funding": 0.0207, "result": "止盈"}, {"time": "2026-06-12 02:37:49", "close_time": "2026-06-12 03:07:01", "symbol": "HMSTRUSDT", "direction": "long", "qty": 428779.0, "entry": 0.0003072, "pnl": -0.41, "funding": 0.0, "result": "止損"}, {"time": "2026-06-12 02:37:51", "close_time": "2026-06-12 03:08:05", "symbol": "POWERUSDT", "direction": "long", "qty": 1097.0, "entry": 0.10498187, "pnl": -2.75, "funding": 0.0, "result": "止損"}, {"time": "2026-06-12 03:44:13", "close_time": "2026-06-12 05:52:27", "symbol": "EPICUSDT", "direction": "long", "qty": 201.1, "entry": 0.64486713, "pnl": -2.24, "funding": -0.0058, "result": "止損"}, {"time": "2026-06-12 03:44:14", "close_time": "2026-06-12 04:39:16", "symbol": "BANKUSDT", "direction": "long", "qty": 2440.0, "entry": 0.04651672, "pnl": -1.4, "funding": -0.0068, "result": "止損"}, {"time": "2026-06-12 04:50:15", "close_time": "2026-06-12 05:51:02", "symbol": "PYTHUSDT", "direction": "long", "qty": 2983.0, "entry": 0.03760052, "pnl": -0.72, "funding": 0.0, "result": "止損"}, {"time": "2026-06-12 05:55:22", "close_time": "2026-06-12 06:42:29", "symbol": "COLLECTUSDT", "direction": "long", "qty": 2044.0, "entry": 0.0619101, "pnl": -3.75, "funding": 0.0, "result": "止損"}, {"time": "2026-06-12 05:55:24", "close_time": "2026-06-12 07:42:49", "symbol": "DEXEUSDT", "direction": "long", "qty": 5.17, "entry": 21.35509478, "pnl": -2.14, "funding": 0.0, "result": "止損"}, {"time": "2026-06-12 07:00:02", "close_time": "2026-06-12 13:14:54", "symbol": "CRVUSDT", "direction": "long", "qty": 439.6, "entry": 0.2544, "pnl": 1.2, "funding": -0.0112, "result": "止盈"}, {"time": "2026-06-13 15:12:53", "close_time": "2026-06-13 18:44:12", "symbol": "OPUSDT", "direction": "long", "qty": 6635.3, "entry": 0.1043, "pnl": 19.93, "funding": 0.0041, "result": "止盈"}, {"time": "2026-06-13 15:12:55", "close_time": "2026-06-13 15:14:29", "symbol": "CRVUSDT", "direction": "long", "qty": 2834.0, "entry": 0.2344, "pnl": 0.05, "funding": 0.0, "result": "止盈"}, {"time": "2026-06-13 16:13:15", "close_time": "2026-06-14 00:15:13", "symbol": "INJUSDT", "direction": "long", "qty": 108.5, "entry": 5.29020922, "pnl": -8.49, "funding": 0.0399, "result": "止損"}, {"time": "2026-06-13 17:43:40", "close_time": "2026-06-13 23:07:04", "symbol": "CRVUSDT", "direction": "long", "qty": 2874.7, "entry": 0.2339, "pnl": 20.04, "funding": 0.0, "result": "止盈"}, {"time": "2026-06-13 19:45:25", "close_time": "2026-06-14 05:41:21", "symbol": "BTCUSDT", "direction": "long", "qty": 0.061, "entry": 63879.4, "pnl": 26.51, "funding": -0.0187, "result": "止盈"}, {"time": "2026-06-13 21:31:52", "close_time": "2026-06-13 23:00:07", "symbol": "TAOUSDT", "direction": "long", "qty": 1.925, "entry": 250.57671169, "pnl": 23.92, "funding": 0.0, "result": "止盈"}, {"time": "2026-06-13 23:02:52", "close_time": "2026-06-14 01:22:26", "symbol": "ESPORTSUSDT", "direction": "long", "qty": 257.0, "entry": 0.21531661, "pnl": -11.63, "funding": 0.2831, "result": "止損"}, {"time": "2026-06-13 23:19:44", "close_time": "2026-06-14 00:04:16", "symbol": "DOGEUSDT", "direction": "long", "qty": 19835.0, "entry": 0.08867, "pnl": -11.42, "funding": -0.1752, "result": "止損"}, {"time": "2026-06-13 23:27:16", "close_time": "2026-06-14 08:28:58", "symbol": "TRUMPUSDT", "direction": "long", "qty": 164.22, "entry": 2.236, "pnl": -11.81, "funding": 0.4853, "result": "止損"}, {"time": "2026-06-14 00:27:38", "close_time": "2026-06-14 03:26:43", "symbol": "COAIUSDT", "direction": "long", "qty": 239.0, "entry": 0.5621, "pnl": 24.59, "funding": 0.0, "result": "止盈"}, {"time": "2026-06-14 00:27:39", "close_time": "2026-06-14 05:41:59", "symbol": "ETHUSDT", "direction": "long", "qty": 1.938, "entry": 1673.56, "pnl": 24.33, "funding": 0.0, "result": "止盈"}, {"time": "2026-06-14 01:28:01", "close_time": "2026-06-14 12:53:09", "symbol": "1000PEPEUSDT", "direction": "long", "qty": 494438.0, "entry": 0.00285229, "pnl": -11.65, "funding": 0.062, "result": "止損"}, {"time": "2026-06-14 03:40:18", "close_time": "2026-06-14 04:20:37", "symbol": "COAIUSDT", "direction": "long", "qty": 199.0, "entry": 0.6876, "pnl": -11.57, "funding": -0.0831, "result": "止損"}, {"time": "2026-06-14 04:40:39", "close_time": "2026-06-14 06:54:27", "symbol": "DOGEUSDT", "direction": "long", "qty": 20948.0, "entry": 0.08765, "pnl": 10.98, "funding": 0.0, "result": "止盈"}, {"time": "2026-06-14 06:41:01", "close_time": "2026-06-14 13:11:27", "symbol": "ADAUSDT", "direction": "long", "qty": 7742.0, "entry": 0.1721, "pnl": -0.11, "funding": 0.1737, "result": "止損"}, {"time": "2026-06-14 06:41:03", "close_time": "2026-06-14 13:11:20", "symbol": "HYPEUSDT", "direction": "long", "qty": 15.02, "entry": 60.416, "pnl": -4.49, "funding": -0.0731, "result": "止損"}, {"time": "2026-06-14 07:41:23", "close_time": "2026-06-14 13:11:23", "symbol": "COAIUSDT", "direction": "long", "qty": 136.0, "entry": 0.428, "pnl": 5.44, "funding": -0.01, "result": "止盈"}, {"time": "2026-06-14 09:42:07", "close_time": "2026-06-14 13:17:14", "symbol": "SOLUSDT", "direction": "long", "qty": 23.76, "entry": 68.89, "pnl": -11.78, "funding": 0.0, "result": "止損"}, {"time": "2026-06-14 12:55:01", "close_time": "2026-06-14 17:12:26", "symbol": "TAOUSDT", "direction": "long", "qty": 1.421, "entry": 273.24513723, "pnl": -11.7, "funding": -0.0191, "result": "止損"}, {"time": "2026-06-14 14:01:02", "close_time": "2026-06-14 17:18:22", "symbol": "NEARUSDT", "direction": "long", "qty": 365.0, "entry": 2.122, "pnl": -12.03, "funding": -0.0353, "result": "止損"}, {"time": "2026-06-14 14:01:04", "close_time": "2026-06-14 14:23:51", "symbol": "BEATUSDT", "direction": "long", "qty": 23.0, "entry": 7.18541739, "pnl": -11.82, "funding": 0.0, "result": "止損"}];
-const POSITIONS  = [];
+const DATA = {
+  gold:    [{"time": "2026-05-28 07:10", "close_time": "2026-05-28 07:45", "symbol": "STT_5M", "direction": "sell", "qty": 0.47, "entry": 4452.975, "pnl": 3.918, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-28 07:30", "close_time": "2026-05-28 19:12", "symbol": "STT_15M", "direction": "sell", "qty": 0.2, "entry": 4450.73, "pnl": 10.629, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-28 08:00", "close_time": "2026-05-28 21:18", "symbol": "STT_30M", "direction": "sell", "qty": 0.15, "entry": 4447.11, "pnl": 16.592, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-28 08:40", "close_time": "2026-05-28 08:59", "symbol": "STT_5M", "direction": "buy", "qty": 0.32, "entry": 4450.745, "pnl": 6.928, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-28 09:10", "close_time": "2026-05-28 09:21", "symbol": "STT_5M", "direction": "sell", "qty": 0.17, "entry": 4444.64, "pnl": 13.574, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-28 10:00", "close_time": "2026-05-28 10:12", "symbol": "Interval_5M", "direction": "buy", "qty": 0.2, "entry": 4410.105, "pnl": -10.052, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-28 10:15", "close_time": "2026-05-28 11:18", "symbol": "Interval_15M", "direction": "buy", "qty": 0.13, "entry": 4402.73, "pnl": -15.1, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-28 10:35", "close_time": "2026-05-28 10:46", "symbol": "STT_5M", "direction": "buy", "qty": 0.18, "entry": 4409.075, "pnl": -13.543, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-28 11:30", "close_time": "2026-05-28 11:36", "symbol": "Interval_5M", "direction": "buy", "qty": 0.21, "entry": 4387.58, "pnl": -9.664, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-28 11:30", "close_time": "2026-05-28 11:36", "symbol": "Interval_30M", "direction": "buy", "qty": 0.09, "entry": 4387.58, "pnl": -9.664, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-28 11:45", "close_time": "2026-05-28 20:48", "symbol": "Interval_15M", "direction": "buy", "qty": 0.13, "entry": 4377.0, "pnl": 30.047, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-28 11:50", "close_time": "2026-05-28 13:33", "symbol": "Interval_5M", "direction": "buy", "qty": 0.2, "entry": 4375.17, "pnl": 11.575, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-28 12:10", "close_time": "2026-05-28 12:20", "symbol": "STT_5M", "direction": "buy", "qty": 0.18, "entry": 4381.465, "pnl": -13.804, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-28 13:15", "close_time": "2026-05-28 13:30", "symbol": "STT_5M", "direction": "buy", "qty": 0.28, "entry": 4375.395, "pnl": 6.642, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-28 13:45", "close_time": "2026-05-28 14:08", "symbol": "STT_15M", "direction": "buy", "qty": 0.11, "entry": 4389.645, "pnl": 8.339, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-28 13:45", "close_time": "2026-05-28 14:08", "symbol": "Interval_5M", "direction": "sell", "qty": 0.22, "entry": 4389.645, "pnl": 8.339, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-28 14:00", "close_time": "2026-05-28 14:08", "symbol": "STT_5M", "direction": "sell", "qty": 0.29, "entry": 4388.115, "pnl": 6.388, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-28 14:00", "close_time": "2026-05-28 14:08", "symbol": "Interval_60M", "direction": "buy", "qty": 0.06, "entry": 4388.115, "pnl": 6.388, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-28 15:55", "close_time": "2026-05-28 16:01", "symbol": "STT_5M", "direction": "sell", "qty": 0.4, "entry": 4385.655, "pnl": -6.279, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-28 16:35", "close_time": "2026-05-28 17:21", "symbol": "STT_5M", "direction": "buy", "qty": 0.41, "entry": 4391.92, "pnl": 4.535, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-28 17:00", "close_time": "2026-05-28 20:59", "symbol": "Interval_120M", "direction": "buy", "qty": 0.05, "entry": 4387.055, "pnl": 44.086, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-28 18:30", "close_time": "2026-05-28 18:42", "symbol": "STT_5M", "direction": "buy", "qty": 0.31, "entry": 4401.21, "pnl": -8.121, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-28 19:00", "close_time": "2026-05-28 19:15", "symbol": "Interval_5M", "direction": "buy", "qty": 0.24, "entry": 4383.17, "pnl": 6.195, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-28 19:30", "close_time": "2026-05-28 20:06", "symbol": "STT_30M", "direction": "sell", "qty": 0.12, "entry": 4384.945, "pnl": -6.495, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-28 19:30", "close_time": "2026-05-28 20:06", "symbol": "STT_5M", "direction": "sell", "qty": 0.38, "entry": 4384.945, "pnl": -6.495, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-28 20:25", "close_time": "2026-05-28 20:36", "symbol": "STT_5M", "direction": "sell", "qty": 0.21, "entry": 4381.575, "pnl": -12.165, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-28 21:05", "close_time": "2026-05-28 22:12", "symbol": "Interval_5M", "direction": "sell", "qty": 0.19, "entry": 4432.89, "pnl": -10.654, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-28 21:45", "close_time": "2026-05-28 22:09", "symbol": "Interval_15M", "direction": "sell", "qty": 0.12, "entry": 4422.15, "pnl": -17.352, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-28 22:10", "close_time": "2026-05-28 22:13", "symbol": "STT_5M", "direction": "buy", "qty": 0.13, "entry": 4438.915, "pnl": 17.309, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-28 22:30", "close_time": "2026-05-28 22:46", "symbol": "Interval_5M", "direction": "sell", "qty": 0.12, "entry": 4460.91, "pnl": -16.781, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-28 23:00", "close_time": "2026-05-29 00:18", "symbol": "Interval_15M", "direction": "sell", "qty": 0.09, "entry": 4469.97, "pnl": -22.881, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-29 00:35", "close_time": "2026-05-29 00:51", "symbol": "Interval_5M", "direction": "sell", "qty": 0.19, "entry": 4499.045, "pnl": -10.599, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-29 01:30", "close_time": "2026-05-29 09:30", "symbol": "Interval_30M", "direction": "sell", "qty": 0.08, "entry": 4502.165, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-05-29 02:55", "close_time": "2026-05-29 06:00", "symbol": "Interval_5M", "direction": "buy", "qty": 0.3, "entry": 4503.185, "pnl": -6.622, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-29 03:00", "close_time": "2026-05-29 10:02", "symbol": "Interval_60M", "direction": "sell", "qty": 0.06, "entry": 4501.385, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-05-29 03:30", "close_time": "2026-05-29 09:18", "symbol": "STT_30M", "direction": "sell", "qty": 0.14, "entry": 4499.835, "pnl": -18.315, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-29 04:15", "close_time": "2026-05-29 06:00", "symbol": "Interval_5M", "direction": "buy", "qty": 0.43, "entry": 4497.225, "pnl": 1.687, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-29 07:10", "close_time": "2026-05-29 07:17", "symbol": "STT_5M", "direction": "sell", "qty": 1.74, "entry": 4494.42, "pnl": -1.441, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-29 07:30", "close_time": "2026-05-29 08:01", "symbol": "STT_5M", "direction": "sell", "qty": 0.5, "entry": 4492.56, "pnl": -5.027, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-29 08:15", "close_time": "2026-05-29 09:01", "symbol": "STT_15M", "direction": "buy", "qty": 0.27, "entry": 4497.71, "pnl": 5.476, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-29 08:15", "close_time": "2026-05-29 09:01", "symbol": "STT_5M", "direction": "buy", "qty": 0.41, "entry": 4497.71, "pnl": 5.476, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-29 08:35", "close_time": "2026-05-29 08:36", "symbol": "Interval_5M", "direction": "sell", "qty": 0.37, "entry": 4495.51, "pnl": 0.51, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-29 09:25", "close_time": "2026-05-29 09:30", "symbol": "Interval_5M", "direction": "sell", "qty": 0.26, "entry": 4512.875, "pnl": 8.201, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-29 10:05", "close_time": "2026-05-29 10:30", "symbol": "STT_5M", "direction": "buy", "qty": 0.24, "entry": 4510.915, "pnl": -10.303, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-29 10:55", "close_time": "2026-05-29 11:07", "symbol": "STT_5M", "direction": "sell", "qty": 0.44, "entry": 4503.215, "pnl": 5.061, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-29 11:25", "close_time": "2026-05-29 11:27", "symbol": "Interval_5M", "direction": "buy", "qty": 0.32, "entry": 4498.44, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-05-29 11:50", "close_time": "2026-05-29 12:01", "symbol": "STT_5M", "direction": "buy", "qty": 0.45, "entry": 4499.98, "pnl": 4.092, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-29 12:00", "close_time": "2026-05-29 12:23", "symbol": "STT_15M", "direction": "buy", "qty": 0.35, "entry": 4501.38, "pnl": 6.079, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-29 12:00", "close_time": "2026-05-29 12:23", "symbol": "STT_30M", "direction": "buy", "qty": 0.34, "entry": 4501.38, "pnl": 6.079, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-29 12:35", "close_time": "2026-05-29 12:57", "symbol": "Interval_5M", "direction": "sell", "qty": 0.38, "entry": 4508.96, "pnl": -5.245, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-29 13:00", "close_time": "2026-05-29 13:34", "symbol": "STT_5M", "direction": "buy", "qty": 0.39, "entry": 4514.105, "pnl": -6.448, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-29 13:55", "close_time": "2026-05-29 17:13", "symbol": "STT_5M", "direction": "buy", "qty": 0.19, "entry": 4515.225, "pnl": 11.841, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-29 14:10", "close_time": "2026-05-29 14:13", "symbol": "Interval_5M", "direction": "sell", "qty": 0.29, "entry": 4514.27, "pnl": 2.156, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-29 14:15", "close_time": "2026-05-29 14:27", "symbol": "STT_15M", "direction": "buy", "qty": 0.18, "entry": 4515.975, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-05-29 17:25", "close_time": "2026-05-29 17:29", "symbol": "Interval_5M", "direction": "sell", "qty": 0.29, "entry": 4522.745, "pnl": -6.922, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-29 17:55", "close_time": "2026-05-29 18:03", "symbol": "Interval_5M", "direction": "sell", "qty": 0.25, "entry": 4532.64, "pnl": 6.494, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-29 18:15", "close_time": "2026-05-29 18:37", "symbol": "Interval_15M", "direction": "sell", "qty": 0.16, "entry": 4528.64, "pnl": -12.389, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-29 18:35", "close_time": "2026-05-29 20:20", "symbol": "STT_5M", "direction": "buy", "qty": 0.18, "entry": 4538.815, "pnl": -13.65, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-29 20:30", "close_time": "2026-05-29 21:58", "symbol": "STT_30M", "direction": "sell", "qty": 0.14, "entry": 4522.275, "pnl": -17.595, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-29 20:30", "close_time": "2026-05-29 21:58", "symbol": "STT_15M", "direction": "sell", "qty": 0.14, "entry": 4522.275, "pnl": -17.595, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-29 20:50", "close_time": "2026-05-29 20:59", "symbol": "Interval_5M", "direction": "buy", "qty": 0.26, "entry": 4515.465, "pnl": 7.117, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-29 21:00", "close_time": "2026-05-29 21:40", "symbol": "STT_5M", "direction": "buy", "qty": 0.22, "entry": 4523.215, "pnl": 10.101, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-29 21:45", "close_time": "2026-05-29 22:01", "symbol": "Interval_5M", "direction": "sell", "qty": 0.23, "entry": 4533.21, "pnl": -8.696, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-29 22:40", "close_time": "2026-05-29 22:42", "symbol": "STT_5M", "direction": "sell", "qty": 0.43, "entry": 4531.735, "pnl": -5.749, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-05-29 22:55", "close_time": "2026-05-29 23:04", "symbol": "STT_5M", "direction": "buy", "qty": 0.12, "entry": 4556.89, "pnl": 19.273, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-29 23:00", "close_time": "2026-05-30 01:09", "symbol": "STT_30M", "direction": "buy", "qty": 0.06, "entry": 4564.135, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-05-29 23:20", "close_time": "2026-05-29 23:42", "symbol": "Interval_5M", "direction": "sell", "qty": 0.14, "entry": 4588.85, "pnl": 23.803, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-30 01:40", "close_time": "2026-05-30 01:55", "symbol": "STT_5M", "direction": "sell", "qty": 0.28, "entry": 4558.855, "pnl": 6.621, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-30 01:45", "close_time": "2026-05-30 02:03", "symbol": "STT_15M", "direction": "sell", "qty": 0.12, "entry": 4554.18, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-05-30 02:00", "close_time": "2026-05-30 02:20", "symbol": "Interval_5M", "direction": "buy", "qty": 0.25, "entry": 4553.51, "pnl": 5.862, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-05-30 04:00", "close_time": "2026-06-01 06:00", "symbol": "Interval_5M", "direction": "buy", "qty": 0.37, "entry": 4545.685, "pnl": -5.345, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 06:05", "close_time": "2026-06-01 06:05", "symbol": "Pro_5Msell_TP1", "direction": "Pro_5Msell_TP1", "qty": 0.01, "entry": 74.45, "pnl": -0.35, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 06:05", "close_time": "2026-06-01 06:05", "symbol": "Pro_5Msell_TP2", "direction": "Pro_5Msell_TP2", "qty": 0.01, "entry": 74.45, "pnl": -0.35, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 06:05", "close_time": "2026-06-01 06:05", "symbol": "Pro_5Msell_TP3", "direction": "Pro_5Msell_TP3", "qty": 0.01, "entry": 74.45, "pnl": -0.35, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 06:10", "close_time": "2026-06-01 06:45", "symbol": "Interval_5M", "direction": "buy", "qty": 0.3, "entry": 4526.155, "pnl": 10.831, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 06:15", "close_time": "2026-06-01 10:59", "symbol": "Interval_15M", "direction": "buy", "qty": 0.15, "entry": 4534.805, "pnl": -13.447, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 07:05", "close_time": "2026-06-01 07:29", "symbol": "STT_5M", "direction": "buy", "qty": 0.44, "entry": 4539.895, "pnl": 5.079, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 07:30", "close_time": "2026-06-01 07:30", "symbol": "Pro_5Mbuy_TP1", "direction": "Pro_5Mbuy_TP1", "qty": 0.01, "entry": 75.45, "pnl": 0.5, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 07:30", "close_time": "2026-06-01 07:30", "symbol": "Pro_5Mbuy_TP2", "direction": "Pro_5Mbuy_TP2", "qty": 0.01, "entry": 75.45, "pnl": 0.5, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 07:30", "close_time": "2026-06-01 07:30", "symbol": "Pro_5Mbuy_TP3", "direction": "Pro_5Mbuy_TP3", "qty": 0.01, "entry": 75.45, "pnl": 0.5, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 07:30", "close_time": "2026-06-01 07:30", "symbol": "STT_15M", "direction": "buy", "qty": 0.23, "entry": 4545.05, "pnl": 0.5, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 07:55", "close_time": "2026-06-01 08:00", "symbol": "STT_5M", "direction": "buy", "qty": 0.4, "entry": 4544.385, "pnl": -6.294, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 08:20", "close_time": "2026-06-01 08:28", "symbol": "STT_5M", "direction": "sell", "qty": 0.43, "entry": 4538.465, "pnl": -5.769, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 08:40", "close_time": "2026-06-01 09:08", "symbol": "STT_5M", "direction": "sell", "qty": 0.28, "entry": 4536.965, "pnl": 8.034, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 09:10", "close_time": "2026-06-01 09:10", "symbol": "Pro_5Msell_TP1", "direction": "Pro_5Msell_TP1", "qty": 0.01, "entry": 74.95, "pnl": -0.7, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 09:10", "close_time": "2026-06-01 09:10", "symbol": "Pro_5Msell_TP2", "direction": "Pro_5Msell_TP2", "qty": 0.01, "entry": 74.95, "pnl": -0.7, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 09:10", "close_time": "2026-06-01 09:10", "symbol": "Pro_5Msell_TP3", "direction": "Pro_5Msell_TP3", "qty": 0.01, "entry": 74.95, "pnl": -0.7, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 09:30", "close_time": "2026-06-01 11:44", "symbol": "STT_30M", "direction": "sell", "qty": 0.13, "entry": 4528.87, "pnl": 18.645, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 10:15", "close_time": "2026-06-01 10:43", "symbol": "STT_5M", "direction": "buy", "qty": 0.29, "entry": 4532.36, "pnl": -8.626, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 10:45", "close_time": "2026-06-01 11:18", "symbol": "STT_5M", "direction": "sell", "qty": 0.29, "entry": 4523.17, "pnl": 7.883, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 11:00", "close_time": "2026-06-01 12:49", "symbol": "STT_15M", "direction": "sell", "qty": 0.18, "entry": 4521.595, "pnl": 11.928, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 11:05", "close_time": "2026-06-01 11:09", "symbol": "Interval_5M", "direction": "buy", "qty": 0.3, "entry": 4524.795, "pnl": -6.747, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 11:30", "close_time": "2026-06-01 11:31", "symbol": "Interval_15M", "direction": "buy", "qty": 0.16, "entry": 4520.705, "pnl": 2.676, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 11:30", "close_time": "2026-06-01 11:31", "symbol": "STT_5M", "direction": "buy", "qty": 0.69, "entry": 4520.705, "pnl": 2.676, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 12:30", "close_time": "2026-06-01 15:44", "symbol": "Interval_30M", "direction": "buy", "qty": 0.11, "entry": 4515.945, "pnl": -17.666, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 13:05", "close_time": "2026-06-01 13:19", "symbol": "STT_5M", "direction": "buy", "qty": 0.31, "entry": 4516.14, "pnl": 5.91, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 13:30", "close_time": "2026-06-01 13:32", "symbol": "Interval_5M", "direction": "sell", "qty": 0.37, "entry": 4520.66, "pnl": 2.715, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 13:50", "close_time": "2026-06-01 14:01", "symbol": "STT_5M", "direction": "buy", "qty": 0.27, "entry": 4524.275, "pnl": -9.346, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 14:15", "close_time": "2026-06-01 14:20", "symbol": "STT_5M", "direction": "sell", "qty": 0.49, "entry": 4514.165, "pnl": 4.549, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 14:30", "close_time": "2026-06-01 14:35", "symbol": "Interval_5M", "direction": "buy", "qty": 0.26, "entry": 4514.65, "pnl": -7.666, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 14:45", "close_time": "2026-06-01 15:47", "symbol": "STT_15M", "direction": "sell", "qty": 0.21, "entry": 4504.785, "pnl": 10.237, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 14:55", "close_time": "2026-06-01 15:46", "symbol": "Interval_5M", "direction": "buy", "qty": 0.26, "entry": 4503.56, "pnl": -7.578, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 15:05", "close_time": "2026-06-01 15:43", "symbol": "STT_5M", "direction": "buy", "qty": 0.33, "entry": 4507.795, "pnl": -7.597, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 16:00", "close_time": "2026-06-01 16:04", "symbol": "Interval_15M", "direction": "buy", "qty": 0.16, "entry": 4503.345, "pnl": -7.537, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 16:00", "close_time": "2026-06-01 16:04", "symbol": "Interval_5M", "direction": "buy", "qty": 0.27, "entry": 4503.345, "pnl": -7.537, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 16:05", "close_time": "2026-06-01 17:17", "symbol": "STT_5M", "direction": "sell", "qty": 0.31, "entry": 4495.885, "pnl": -8.193, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 16:25", "close_time": "2026-06-01 16:42", "symbol": "Interval_5M", "direction": "buy", "qty": 0.25, "entry": 4492.955, "pnl": 4.99, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 16:30", "close_time": "2026-06-01 19:22", "symbol": "Interval_30M", "direction": "buy", "qty": 0.11, "entry": 4496.135, "pnl": 15.759, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 17:20", "close_time": "2026-06-01 17:20", "symbol": "Pro_5Mbuy_TP1", "direction": "Pro_5Mbuy_TP1", "qty": 0.01, "entry": 76.25, "pnl": 0.85, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 17:20", "close_time": "2026-06-01 17:20", "symbol": "Pro_5Mbuy_TP2", "direction": "Pro_5Mbuy_TP2", "qty": 0.01, "entry": 76.25, "pnl": 0.85, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 17:20", "close_time": "2026-06-01 17:20", "symbol": "Pro_5Mbuy_TP3", "direction": "Pro_5Mbuy_TP3", "qty": 0.01, "entry": 76.25, "pnl": 0.85, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 18:00", "close_time": "2026-06-01 21:21", "symbol": "Interval_60M", "direction": "buy", "qty": 0.08, "entry": 4495.945, "pnl": -25.072, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 18:15", "close_time": "2026-06-01 18:47", "symbol": "STT_15M", "direction": "buy", "qty": 0.3, "entry": 4501.505, "pnl": 7.148, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 18:40", "close_time": "2026-06-01 18:47", "symbol": "Interval_5M", "direction": "sell", "qty": 0.3, "entry": 4503.18, "pnl": -6.639, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 18:45", "close_time": "2026-06-01 18:47", "symbol": "STT_5M", "direction": "buy", "qty": 0.7, "entry": 4506.04, "pnl": 2.642, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 19:00", "close_time": "2026-06-01 19:03", "symbol": "STT_30M", "direction": "buy", "qty": 0.15, "entry": 4504.125, "pnl": 2.008, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 19:00", "close_time": "2026-06-01 19:03", "symbol": "Interval_5M", "direction": "sell", "qty": 0.3, "entry": 4504.125, "pnl": 2.008, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 19:05", "close_time": "2026-06-01 19:22", "symbol": "STT_5M", "direction": "sell", "qty": 0.22, "entry": 4500.32, "pnl": -11.463, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 20:25", "close_time": "2026-06-01 20:26", "symbol": "STT_5M", "direction": "sell", "qty": 0.55, "entry": 4501.945, "pnl": -4.523, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 20:45", "close_time": "2026-06-01 21:03", "symbol": "STT_5M", "direction": "buy", "qty": 0.25, "entry": 4507.365, "pnl": -10.177, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 21:00", "close_time": "2026-06-01 21:03", "symbol": "STT_15M", "direction": "sell", "qty": 0.36, "entry": 4502.215, "pnl": 5.924, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 21:15", "close_time": "2026-06-01 21:15", "symbol": "Pro_5Msell_TP1", "direction": "Pro_5Msell_TP1", "qty": 0.01, "entry": 75.15, "pnl": -1.1, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 21:15", "close_time": "2026-06-01 21:15", "symbol": "Pro_5Msell_TP2", "direction": "Pro_5Msell_TP2", "qty": 0.01, "entry": 75.15, "pnl": -1.1, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 21:15", "close_time": "2026-06-01 21:15", "symbol": "Pro_5Msell_TP3", "direction": "Pro_5Msell_TP3", "qty": 0.01, "entry": 75.15, "pnl": -1.1, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 21:40", "close_time": "2026-06-01 21:51", "symbol": "Interval_5M", "direction": "buy", "qty": 0.15, "entry": 4473.1, "pnl": -13.237, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 22:00", "close_time": "2026-06-01 22:00", "symbol": "Pro_30Msell_TP1", "direction": "Pro_30Msell_TP1", "qty": 0.01, "entry": 73.95, "pnl": -2.1, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 22:00", "close_time": "2026-06-01 22:00", "symbol": "Pro_30Msell_TP2", "direction": "Pro_30Msell_TP2", "qty": 0.01, "entry": 73.95, "pnl": -2.1, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 22:00", "close_time": "2026-06-01 22:00", "symbol": "Pro_30Msell_TP3", "direction": "Pro_30Msell_TP3", "qty": 0.01, "entry": 73.95, "pnl": -2.1, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 22:00", "close_time": "2026-06-01 22:00", "symbol": "Pro_15Msell_TP1", "direction": "Pro_15Msell_TP1", "qty": 0.01, "entry": 73.95, "pnl": -1.6, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 22:00", "close_time": "2026-06-01 22:00", "symbol": "Pro_15Msell_TP2", "direction": "Pro_15Msell_TP2", "qty": 0.01, "entry": 73.95, "pnl": -1.6, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 22:00", "close_time": "2026-06-01 22:00", "symbol": "Pro_15Msell_TP3", "direction": "Pro_15Msell_TP3", "qty": 0.01, "entry": 73.95, "pnl": -1.6, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-01 22:15", "close_time": "2026-06-02 00:55", "symbol": "Interval_15M", "direction": "buy", "qty": 0.11, "entry": 4461.26, "pnl": 19.806, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 23:30", "close_time": "2026-06-02 01:30", "symbol": "Interval_30M", "direction": "buy", "qty": 0.09, "entry": 4468.42, "pnl": 15.467, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-01 23:40", "close_time": "2026-06-02 00:10", "symbol": "Interval_5M", "direction": "sell", "qty": 0.19, "entry": 4476.8, "pnl": 9.422, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 00:55", "close_time": "2026-06-02 01:43", "symbol": "STT_5M", "direction": "buy", "qty": 0.19, "entry": 4480.14, "pnl": 9.822, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 01:00", "close_time": "2026-06-02 07:26", "symbol": "STT_15M", "direction": "buy", "qty": 0.14, "entry": 4480.17, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-02 01:10", "close_time": "2026-06-02 01:29", "symbol": "Interval_5M", "direction": "sell", "qty": 0.25, "entry": 4473.615, "pnl": 0.963, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 04:00", "close_time": "2026-06-02 06:00", "symbol": "Interval_5M", "direction": "buy", "qty": 0.49, "entry": 4481.265, "pnl": 2.671, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 07:35", "close_time": "2026-06-02 07:35", "symbol": "Interval_5M", "direction": "sell", "qty": 0.55, "entry": 4484.685, "pnl": 0.252, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 07:35", "close_time": "2026-06-02 07:35", "symbol": "STT_5M", "direction": "sell", "qty": 0.63, "entry": 4484.685, "pnl": 0.252, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 08:00", "close_time": "2026-06-02 08:00", "symbol": "STT_5M", "direction": "sell", "qty": 2.86, "entry": 4484.475, "pnl": 0.646, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 08:20", "close_time": "2026-06-02 08:29", "symbol": "STT_5M", "direction": "buy", "qty": 0.28, "entry": 4485.38, "pnl": 8.04, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 08:25", "close_time": "2026-06-02 08:25", "symbol": "Pro_5Mbuy_TP1", "direction": "Pro_5Mbuy_TP1", "qty": 0.01, "entry": 75.15, "pnl": 0.35, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 08:25", "close_time": "2026-06-02 08:25", "symbol": "Pro_5Mbuy_TP2", "direction": "Pro_5Mbuy_TP2", "qty": 0.01, "entry": 75.15, "pnl": 0.35, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 08:25", "close_time": "2026-06-02 08:25", "symbol": "Pro_5Mbuy_TP3", "direction": "Pro_5Mbuy_TP3", "qty": 0.01, "entry": 75.15, "pnl": 0.35, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 08:40", "close_time": "2026-06-02 08:42", "symbol": "Interval_5M", "direction": "sell", "qty": 0.34, "entry": 4489.205, "pnl": 2.106, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 09:15", "close_time": "2026-06-02 09:15", "symbol": "STT_5M", "direction": "buy", "qty": 0.22, "entry": 4489.93, "pnl": 1.65, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 09:15", "close_time": "2026-06-02 09:15", "symbol": "Pro_15Mbuy_TP1", "direction": "Pro_15Mbuy_TP1", "qty": 0.01, "entry": 75.8, "pnl": 1.65, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 09:15", "close_time": "2026-06-02 09:15", "symbol": "Pro_15Mbuy_TP2", "direction": "Pro_15Mbuy_TP2", "qty": 0.01, "entry": 75.8, "pnl": 1.65, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 09:15", "close_time": "2026-06-02 09:15", "symbol": "Pro_15Mbuy_TP3", "direction": "Pro_15Mbuy_TP3", "qty": 0.01, "entry": 75.8, "pnl": 1.65, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 10:00", "close_time": "2026-06-02 11:27", "symbol": "STT_15M", "direction": "sell", "qty": 0.13, "entry": 4474.03, "pnl": -19.345, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-02 10:00", "close_time": "2026-06-02 11:27", "symbol": "STT_30M", "direction": "sell", "qty": 0.13, "entry": 4474.03, "pnl": -19.345, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-02 10:40", "close_time": "2026-06-02 10:58", "symbol": "STT_5M", "direction": "sell", "qty": 0.33, "entry": 4478.985, "pnl": -7.481, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-02 11:35", "close_time": "2026-06-02 12:06", "symbol": "Interval_5M", "direction": "sell", "qty": 0.24, "entry": 4493.96, "pnl": -8.435, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-02 12:30", "close_time": "2026-06-02 12:58", "symbol": "Interval_15M", "direction": "sell", "qty": 0.16, "entry": 4504.67, "pnl": -12.59, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-02 12:55", "close_time": "2026-06-02 13:16", "symbol": "Interval_5M", "direction": "sell", "qty": 0.33, "entry": 4513.0, "pnl": -6.115, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-02 13:30", "close_time": "2026-06-02 14:36", "symbol": "Interval_30M", "direction": "sell", "qty": 0.11, "entry": 4519.89, "pnl": -17.662, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-02 13:45", "close_time": "2026-06-02 14:31", "symbol": "Interval_15M", "direction": "sell", "qty": 0.17, "entry": 4524.655, "pnl": -11.791, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-02 14:00", "close_time": "2026-06-02 14:21", "symbol": "STT_5M", "direction": "sell", "qty": 0.24, "entry": 4517.195, "pnl": -10.27, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-02 14:30", "close_time": "2026-06-02 14:30", "symbol": "Pro_30Mbuy_TP1", "direction": "Pro_30Mbuy_TP1", "qty": 0.01, "entry": 76.7, "pnl": 1.3, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 14:30", "close_time": "2026-06-02 14:30", "symbol": "Pro_30Mbuy_TP2", "direction": "Pro_30Mbuy_TP2", "qty": 0.01, "entry": 76.7, "pnl": 1.3, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 14:30", "close_time": "2026-06-02 14:30", "symbol": "Pro_30Mbuy_TP3", "direction": "Pro_30Mbuy_TP3", "qty": 0.01, "entry": 76.7, "pnl": 1.3, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 14:45", "close_time": "2026-06-02 15:11", "symbol": "Interval_5M", "direction": "sell", "qty": 0.28, "entry": 4532.91, "pnl": -7.145, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-02 15:45", "close_time": "2026-06-02 16:17", "symbol": "STT_5M", "direction": "sell", "qty": 0.24, "entry": 4531.945, "pnl": 7.549, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 16:00", "close_time": "2026-06-02 16:06", "symbol": "Interval_60M", "direction": "sell", "qty": 0.08, "entry": 4535.14, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-02 16:00", "close_time": "2026-06-02 16:06", "symbol": "Interval_30M", "direction": "sell", "qty": 0.12, "entry": 4535.14, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-02 17:05", "close_time": "2026-06-02 17:07", "symbol": "Interval_5M", "direction": "buy", "qty": 0.39, "entry": 4527.375, "pnl": 2.82, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 18:05", "close_time": "2026-06-02 18:05", "symbol": "Pro_5Msell_TP1", "direction": "Pro_5Msell_TP1", "qty": 0.01, "entry": 76.25, "pnl": -0.35, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-02 18:05", "close_time": "2026-06-02 18:05", "symbol": "Pro_5Msell_TP2", "direction": "Pro_5Msell_TP2", "qty": 0.01, "entry": 76.25, "pnl": -0.35, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-02 18:05", "close_time": "2026-06-02 18:05", "symbol": "Pro_5Msell_TP3", "direction": "Pro_5Msell_TP3", "qty": 0.01, "entry": 76.25, "pnl": -0.35, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-02 18:25", "close_time": "2026-06-02 18:45", "symbol": "STT_5M", "direction": "sell", "qty": 0.51, "entry": 4525.265, "pnl": -4.925, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-02 19:10", "close_time": "2026-06-02 19:13", "symbol": "Interval_5M", "direction": "sell", "qty": 0.4, "entry": 4529.945, "pnl": 0.806, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 20:25", "close_time": "2026-06-02 20:30", "symbol": "STT_5M", "direction": "buy", "qty": 0.33, "entry": 4531.095, "pnl": -7.478, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-02 21:00", "close_time": "2026-06-02 22:16", "symbol": "STT_15M", "direction": "sell", "qty": 0.12, "entry": 4514.79, "pnl": 17.092, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 21:00", "close_time": "2026-06-02 22:16", "symbol": "STT_30M", "direction": "sell", "qty": 0.12, "entry": 4514.79, "pnl": 17.092, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 21:05", "close_time": "2026-06-02 21:06", "symbol": "Interval_5M", "direction": "buy", "qty": 0.28, "entry": 4520.405, "pnl": 3.356, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-02 21:35", "close_time": "2026-06-02 22:00", "symbol": "Interval_5M", "direction": "buy", "qty": 0.25, "entry": 4508.375, "pnl": -7.859, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-02 22:10", "close_time": "2026-06-02 22:17", "symbol": "Interval_5M", "direction": "buy", "qty": 0.24, "entry": 4502.965, "pnl": -8.261, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-02 22:15", "close_time": "2026-06-02 22:22", "symbol": "Interval_15M", "direction": "buy", "qty": 0.17, "entry": 4504.365, "pnl": -11.757, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-02 23:00", "close_time": "2026-06-03 00:38", "symbol": "Interval_30M", "direction": "buy", "qty": 0.12, "entry": 4504.27, "pnl": -16.972, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-02 23:35", "close_time": "2026-06-02 23:41", "symbol": "STT_5M", "direction": "buy", "qty": 0.43, "entry": 4506.465, "pnl": -5.79, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 00:05", "close_time": "2026-06-03 00:16", "symbol": "STT_5M", "direction": "sell", "qty": 0.36, "entry": 4500.795, "pnl": 5.127, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 00:15", "close_time": "2026-06-03 00:35", "symbol": "STT_15M", "direction": "sell", "qty": 0.22, "entry": 4498.165, "pnl": 9.546, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 00:45", "close_time": "2026-06-03 00:45", "symbol": "Pro_15Msell_TP1", "direction": "Pro_15Msell_TP1", "qty": 0.01, "entry": 75.4, "pnl": -0.75, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 00:45", "close_time": "2026-06-03 00:45", "symbol": "Pro_15Msell_TP2", "direction": "Pro_15Msell_TP2", "qty": 0.01, "entry": 75.4, "pnl": -0.75, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 00:45", "close_time": "2026-06-03 00:45", "symbol": "Pro_15Msell_TP3", "direction": "Pro_15Msell_TP3", "qty": 0.01, "entry": 75.4, "pnl": -0.75, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 00:45", "close_time": "2026-06-03 00:45", "symbol": "Interval_5M", "direction": "buy", "qty": 0.31, "entry": 4489.895, "pnl": -0.75, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 01:10", "close_time": "2026-06-03 02:41", "symbol": "STT_5M", "direction": "sell", "qty": 0.37, "entry": 4487.02, "pnl": 4.976, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 07:00", "close_time": "2026-06-03 07:10", "symbol": "STT_15M", "direction": "sell", "qty": 0.34, "entry": 4484.94, "pnl": 6.209, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 07:30", "close_time": "2026-06-03 07:30", "symbol": "STT_30M", "direction": "sell", "qty": 0.09, "entry": 4467.635, "pnl": -1.35, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 07:30", "close_time": "2026-06-03 07:30", "symbol": "Pro_30Msell_TP1", "direction": "Pro_30Msell_TP1", "qty": 0.01, "entry": 74.45, "pnl": -1.35, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 07:30", "close_time": "2026-06-03 07:30", "symbol": "Pro_30Msell_TP2", "direction": "Pro_30Msell_TP2", "qty": 0.01, "entry": 74.45, "pnl": -1.35, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 07:30", "close_time": "2026-06-03 07:30", "symbol": "Pro_30Msell_TP3", "direction": "Pro_30Msell_TP3", "qty": 0.01, "entry": 74.45, "pnl": -1.35, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 07:35", "close_time": "2026-06-03 08:00", "symbol": "Interval_5M", "direction": "buy", "qty": 0.28, "entry": 4466.575, "pnl": 10.378, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 08:40", "close_time": "2026-06-03 08:40", "symbol": "Pro_5Mbuy_TP1", "direction": "Pro_5Mbuy_TP1", "qty": 0.01, "entry": 75.2, "pnl": 0.5, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 08:40", "close_time": "2026-06-03 08:40", "symbol": "Pro_5Mbuy_TP2", "direction": "Pro_5Mbuy_TP2", "qty": 0.01, "entry": 75.2, "pnl": 0.5, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 08:40", "close_time": "2026-06-03 08:40", "symbol": "STT_5M", "direction": "buy", "qty": 0.14, "entry": 4491.625, "pnl": 0.5, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 08:40", "close_time": "2026-06-03 08:40", "symbol": "Pro_5Mbuy_TP3", "direction": "Pro_5Mbuy_TP3", "qty": 0.01, "entry": 75.2, "pnl": 0.5, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 08:45", "close_time": "2026-06-03 09:07", "symbol": "STT_15M", "direction": "buy", "qty": 0.09, "entry": 4496.11, "pnl": -27.602, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 08:50", "close_time": "2026-06-03 09:00", "symbol": "Interval_5M", "direction": "sell", "qty": 0.26, "entry": 4491.085, "pnl": 8.105, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 09:15", "close_time": "2026-06-03 09:15", "symbol": "STT_5M", "direction": "sell", "qty": 0.48, "entry": 4471.415, "pnl": -0.55, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 09:15", "close_time": "2026-06-03 09:15", "symbol": "Pro_5Msell_TP1", "direction": "Pro_5Msell_TP1", "qty": 0.01, "entry": 74.55, "pnl": -0.55, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 09:15", "close_time": "2026-06-03 09:15", "symbol": "Pro_5Msell_TP2", "direction": "Pro_5Msell_TP2", "qty": 0.01, "entry": 74.55, "pnl": -0.55, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 09:15", "close_time": "2026-06-03 09:15", "symbol": "Pro_5Msell_TP3", "direction": "Pro_5Msell_TP3", "qty": 0.01, "entry": 74.55, "pnl": -0.55, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 09:55", "close_time": "2026-06-03 09:55", "symbol": "STT_5M", "direction": "sell", "qty": 0.99, "entry": 4474.145, "pnl": -2.532, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 10:10", "close_time": "2026-06-03 10:43", "symbol": "STT_5M", "direction": "buy", "qty": 0.37, "entry": 4478.845, "pnl": 6.027, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 11:05", "close_time": "2026-06-03 12:37", "symbol": "STT_5M", "direction": "buy", "qty": 0.18, "entry": 4485.925, "pnl": -13.586, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 12:40", "close_time": "2026-06-03 13:30", "symbol": "Interval_5M", "direction": "buy", "qty": 0.37, "entry": 4471.695, "pnl": -5.473, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 12:45", "close_time": "2026-06-03 13:31", "symbol": "STT_15M", "direction": "sell", "qty": 0.16, "entry": 4473.515, "pnl": 13.316, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 13:35", "close_time": "2026-06-03 13:58", "symbol": "STT_5M", "direction": "sell", "qty": 0.25, "entry": 4465.045, "pnl": 7.344, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 13:45", "close_time": "2026-06-03 15:12", "symbol": "Interval_15M", "direction": "buy", "qty": 0.18, "entry": 4462.07, "pnl": 9.55, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 14:20", "close_time": "2026-06-03 14:23", "symbol": "STT_5M", "direction": "buy", "qty": 0.37, "entry": 4468.325, "pnl": -6.721, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 14:35", "close_time": "2026-06-03 14:46", "symbol": "STT_5M", "direction": "sell", "qty": 0.57, "entry": 4459.695, "pnl": 3.914, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 15:00", "close_time": "2026-06-03 15:12", "symbol": "Interval_30M", "direction": "buy", "qty": 0.13, "entry": 4463.2, "pnl": 8.454, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 15:05", "close_time": "2026-06-03 15:29", "symbol": "STT_5M", "direction": "buy", "qty": 0.31, "entry": 4465.29, "pnl": -8.195, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 15:30", "close_time": "2026-06-03 16:58", "symbol": "STT_15M", "direction": "sell", "qty": 0.15, "entry": 4456.27, "pnl": 14.446, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 16:00", "close_time": "2026-06-03 16:56", "symbol": "STT_5M", "direction": "sell", "qty": 0.22, "entry": 4453.46, "pnl": 10.284, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 17:00", "close_time": "2026-06-03 18:07", "symbol": "Interval_30M", "direction": "buy", "qty": 0.12, "entry": 4444.11, "pnl": 15.772, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 18:15", "close_time": "2026-06-03 21:42", "symbol": "STT_15M", "direction": "buy", "qty": 0.11, "entry": 4463.17, "pnl": -23.111, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 19:00", "close_time": "2026-06-03 21:44", "symbol": "Interval_60M", "direction": "buy", "qty": 0.08, "entry": 4459.045, "pnl": -25.349, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 19:00", "close_time": "2026-06-03 21:44", "symbol": "Interval_120M", "direction": "buy", "qty": 0.06, "entry": 4459.045, "pnl": -25.349, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 19:05", "close_time": "2026-06-03 20:08", "symbol": "STT_5M", "direction": "buy", "qty": 0.36, "entry": 4464.5, "pnl": -6.859, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 19:30", "close_time": "2026-06-03 20:28", "symbol": "STT_30M", "direction": "buy", "qty": 0.2, "entry": 4464.72, "pnl": -12.59, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 20:20", "close_time": "2026-06-03 20:21", "symbol": "STT_5M", "direction": "sell", "qty": 0.43, "entry": 4456.41, "pnl": -5.751, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 20:45", "close_time": "2026-06-03 20:47", "symbol": "Interval_5M", "direction": "buy", "qty": 0.25, "entry": 4459.07, "pnl": 0.719, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 21:05", "close_time": "2026-06-03 21:20", "symbol": "STT_5M", "direction": "buy", "qty": 0.29, "entry": 4463.285, "pnl": -8.583, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 21:30", "close_time": "2026-06-03 21:44", "symbol": "STT_30M", "direction": "sell", "qty": 0.13, "entry": 4448.705, "pnl": 19.866, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 21:50", "close_time": "2026-06-03 21:55", "symbol": "Interval_5M", "direction": "buy", "qty": 0.18, "entry": 4437.355, "pnl": 10.022, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 22:15", "close_time": "2026-06-03 23:23", "symbol": "STT_5M", "direction": "buy", "qty": 0.19, "entry": 4454.615, "pnl": -13.197, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-03 22:45", "close_time": "2026-06-03 23:37", "symbol": "STT_15M", "direction": "sell", "qty": 0.22, "entry": 4448.415, "pnl": 9.839, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-03 23:30", "close_time": "2026-06-04 06:15", "symbol": "STT_30M", "direction": "sell", "qty": 0.16, "entry": 4445.185, "pnl": 16.011, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 00:00", "close_time": "2026-06-04 00:00", "symbol": "Pro_1Hsell_TP1", "direction": "Pro_1Hsell_TP1", "qty": 0.01, "entry": 73.4, "pnl": -1.95, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-04 00:00", "close_time": "2026-06-04 00:00", "symbol": "Pro_1Hsell_TP2", "direction": "Pro_1Hsell_TP2", "qty": 0.01, "entry": 73.4, "pnl": -1.95, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-04 00:00", "close_time": "2026-06-04 00:00", "symbol": "Pro_1Hsell_TP3", "direction": "Pro_1Hsell_TP3", "qty": 0.01, "entry": 73.4, "pnl": -1.95, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-04 00:15", "close_time": "2026-06-04 00:24", "symbol": "STT_5M", "direction": "sell", "qty": 0.45, "entry": 4439.285, "pnl": 4.076, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 00:40", "close_time": "2026-06-04 00:57", "symbol": "STT_5M", "direction": "sell", "qty": 0.48, "entry": 4436.36, "pnl": -5.246, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-04 01:15", "close_time": "2026-06-04 01:21", "symbol": "Interval_5M", "direction": "sell", "qty": 0.28, "entry": 4442.015, "pnl": 0.954, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 03:25", "close_time": "2026-06-04 03:55", "symbol": "Interval_5M", "direction": "sell", "qty": 0.38, "entry": 4448.145, "pnl": 3.884, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 06:30", "close_time": "2026-06-04 06:32", "symbol": "Interval_15M", "direction": "buy", "qty": 0.19, "entry": 4434.3, "pnl": 3.466, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 07:00", "close_time": "2026-06-04 09:22", "symbol": "STT_15M", "direction": "buy", "qty": 0.1, "entry": 4449.285, "pnl": 22.179, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 07:05", "close_time": "2026-06-04 07:44", "symbol": "Interval_5M", "direction": "sell", "qty": 0.28, "entry": 4446.7, "pnl": -7.072, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-04 07:50", "close_time": "2026-06-04 07:50", "symbol": "Pro_5Mbuy_TP1", "direction": "Pro_5Mbuy_TP1", "qty": 0.01, "entry": 73.35, "pnl": 0.45, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 07:50", "close_time": "2026-06-04 07:50", "symbol": "Pro_5Mbuy_TP2", "direction": "Pro_5Mbuy_TP2", "qty": 0.01, "entry": 73.35, "pnl": 0.45, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 07:50", "close_time": "2026-06-04 07:50", "symbol": "Pro_5Mbuy_TP3", "direction": "Pro_5Mbuy_TP3", "qty": 0.01, "entry": 73.35, "pnl": 0.45, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 07:50", "close_time": "2026-06-04 07:50", "symbol": "STT_5M", "direction": "buy", "qty": 0.18, "entry": 4459.3, "pnl": 0.45, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 07:50", "close_time": "2026-06-04 07:50", "symbol": "Interval_5M", "direction": "sell", "qty": 0.27, "entry": 4459.3, "pnl": 0.45, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 08:00", "close_time": "2026-06-04 19:30", "symbol": "STT_30M", "direction": "buy", "qty": 0.07, "entry": 4457.54, "pnl": 34.745, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 08:15", "close_time": "2026-06-04 08:37", "symbol": "Interval_15M", "direction": "sell", "qty": 0.17, "entry": 4453.435, "pnl": 6.009, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 09:05", "close_time": "2026-06-04 09:22", "symbol": "STT_5M", "direction": "buy", "qty": 0.13, "entry": 4453.965, "pnl": 17.802, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 09:25", "close_time": "2026-06-04 09:42", "symbol": "Interval_5M", "direction": "sell", "qty": 0.22, "entry": 4469.915, "pnl": 8.631, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 10:50", "close_time": "2026-06-04 12:34", "symbol": "STT_5M", "direction": "buy", "qty": 0.19, "entry": 4470.445, "pnl": 11.917, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 11:00", "close_time": "2026-06-04 19:27", "symbol": "STT_15M", "direction": "buy", "qty": 0.14, "entry": 4475.23, "pnl": 15.482, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 11:10", "close_time": "2026-06-04 11:21", "symbol": "Interval_5M", "direction": "sell", "qty": 0.23, "entry": 4474.145, "pnl": 5.345, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 11:30", "close_time": "2026-06-04 19:27", "symbol": "Interval_30M", "direction": "sell", "qty": 0.1, "entry": 4469.52, "pnl": -20.105, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-04 12:35", "close_time": "2026-06-04 13:09", "symbol": "Interval_5M", "direction": "sell", "qty": 0.28, "entry": 4480.3, "pnl": 6.506, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 12:45", "close_time": "2026-06-04 12:45", "symbol": "Pro_15Mbuy_TP1", "direction": "Pro_15Mbuy_TP1", "qty": 0.01, "entry": 73.9, "pnl": 0.85, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 12:45", "close_time": "2026-06-04 12:45", "symbol": "Pro_15Mbuy_TP2", "direction": "Pro_15Mbuy_TP2", "qty": 0.01, "entry": 73.9, "pnl": 0.85, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 12:45", "close_time": "2026-06-04 12:45", "symbol": "Pro_15Mbuy_TP3", "direction": "Pro_15Mbuy_TP3", "qty": 0.01, "entry": 73.9, "pnl": 0.85, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 13:15", "close_time": "2026-06-04 13:46", "symbol": "Interval_15M", "direction": "sell", "qty": 0.15, "entry": 4477.275, "pnl": 7.149, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 14:00", "close_time": "2026-06-04 16:14", "symbol": "Interval_60M", "direction": "sell", "qty": 0.07, "entry": 4469.34, "pnl": 9.348, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 14:05", "close_time": "2026-06-04 14:46", "symbol": "STT_5M", "direction": "buy", "qty": 0.33, "entry": 4473.92, "pnl": -7.568, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-04 14:25", "close_time": "2026-06-04 14:25", "symbol": "Pro_5Msell_TP1", "direction": "Pro_5Msell_TP1", "qty": 0.01, "entry": 73.1, "pnl": -0.45, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-04 14:25", "close_time": "2026-06-04 14:25", "symbol": "Pro_5Msell_TP2", "direction": "Pro_5Msell_TP2", "qty": 0.01, "entry": 73.1, "pnl": -0.45, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-04 14:25", "close_time": "2026-06-04 14:25", "symbol": "Pro_5Msell_TP3", "direction": "Pro_5Msell_TP3", "qty": 0.01, "entry": 73.1, "pnl": -0.45, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-04 15:10", "close_time": "2026-06-04 15:44", "symbol": "STT_5M", "direction": "sell", "qty": 0.44, "entry": 4465.9, "pnl": 4.177, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 16:05", "close_time": "2026-06-04 16:24", "symbol": "STT_5M", "direction": "buy", "qty": 0.37, "entry": 4465.885, "pnl": -6.836, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-04 18:00", "close_time": "2026-06-04 18:21", "symbol": "Interval_5M", "direction": "sell", "qty": 0.28, "entry": 4470.595, "pnl": 2.915, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 19:00", "close_time": "2026-06-04 19:11", "symbol": "STT_5M", "direction": "buy", "qty": 0.44, "entry": 4473.88, "pnl": 4.241, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 19:05", "close_time": "2026-06-04 19:11", "symbol": "Interval_5M", "direction": "sell", "qty": 0.32, "entry": 4472.375, "pnl": -6.337, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-04 19:30", "close_time": "2026-06-04 19:30", "symbol": "Pro_5Mbuy_TP1", "direction": "Pro_5Mbuy_TP1", "qty": 0.01, "entry": 74.0, "pnl": 0.5, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 19:30", "close_time": "2026-06-04 19:30", "symbol": "Pro_5Mbuy_TP2", "direction": "Pro_5Mbuy_TP2", "qty": 0.01, "entry": 74.0, "pnl": 0.5, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 19:30", "close_time": "2026-06-04 19:30", "symbol": "Pro_5Mbuy_TP3", "direction": "Pro_5Mbuy_TP3", "qty": 0.01, "entry": 74.0, "pnl": 0.5, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 19:35", "close_time": "2026-06-04 19:45", "symbol": "Interval_5M", "direction": "sell", "qty": 0.25, "entry": 4485.23, "pnl": -8.036, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-04 20:00", "close_time": "2026-06-04 20:00", "symbol": "Pro_30Mbuy_TP1", "direction": "Pro_30Mbuy_TP1", "qty": 0.01, "entry": 74.6, "pnl": 1.8, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 20:00", "close_time": "2026-06-04 20:00", "symbol": "Pro_30Mbuy_TP2", "direction": "Pro_30Mbuy_TP2", "qty": 0.01, "entry": 74.6, "pnl": 1.8, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 20:00", "close_time": "2026-06-04 20:00", "symbol": "Pro_30Mbuy_TP3", "direction": "Pro_30Mbuy_TP3", "qty": 0.01, "entry": 74.6, "pnl": 1.8, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-04 20:05", "close_time": "2026-06-04 20:51", "symbol": "Interval_5M", "direction": "sell", "qty": 0.19, "entry": 4497.405, "pnl": -10.417, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-05 11:00", "close_time": "2026-06-05 14:18", "symbol": "Pro_5Msell_TP1", "direction": "Pro_5Msell_TP1", "qty": 0.01, "entry": 72.6, "pnl": 1.2, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-05 11:00", "close_time": "2026-06-06 01:50", "symbol": "Pro_5Msell_TP2", "direction": "Pro_5Msell_TP2", "qty": 0.01, "entry": 72.6, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-05 11:00", "close_time": "2026-06-05 14:18", "symbol": "Pro_5Msell_TP3", "direction": "Pro_5Msell_TP3", "qty": 0.01, "entry": 72.6, "pnl": -1.2, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-05 19:55", "close_time": "2026-06-05 20:50", "symbol": "Pro_5Mbuy_TP1", "direction": "Pro_5Mbuy_TP1", "qty": 0.01, "entry": 73.0, "pnl": -0.6, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-05 19:55", "close_time": "2026-06-05 20:50", "symbol": "Pro_5Mbuy_TP2", "direction": "Pro_5Mbuy_TP2", "qty": 0.01, "entry": 73.0, "pnl": -0.6, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-05 19:55", "close_time": "2026-06-05 20:50", "symbol": "Pro_5Mbuy_TP3", "direction": "Pro_5Mbuy_TP3", "qty": 0.01, "entry": 73.0, "pnl": -0.6, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-05 20:50", "close_time": "2026-06-06 01:50", "symbol": "Pro_5Msell_TP1", "direction": "Pro_5Msell_TP1", "qty": 0.01, "entry": 72.4, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-05 20:50", "close_time": "2026-06-06 01:50", "symbol": "Pro_5Msell_TP2", "direction": "Pro_5Msell_TP2", "qty": 0.01, "entry": 72.4, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-08 06:05", "close_time": "2026-06-08 06:05", "symbol": "Interval_5M", "direction": "sell", "qty": 0.26, "entry": 4321.315, "pnl": 0.167, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-08 07:15", "close_time": "2026-06-08 07:55", "symbol": "STT_5M", "direction": "buy", "qty": 0.16, "entry": 4330.96, "pnl": 14.27, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-08 07:25", "close_time": "2026-06-08 07:43", "symbol": "Interval_5M", "direction": "sell", "qty": 0.21, "entry": 4330.335, "pnl": -9.463, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-08 07:30", "close_time": "2026-06-08 09:30", "symbol": "STT_30M", "direction": "buy", "qty": 0.1, "entry": 4334.345, "pnl": -25.83, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-08 08:00", "close_time": "2026-06-08 08:28", "symbol": "Interval_5M", "direction": "sell", "qty": 0.23, "entry": 4344.16, "pnl": -8.755, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-08 08:15", "close_time": "2026-06-08 09:07", "symbol": "Interval_15M", "direction": "sell", "qty": 0.12, "entry": 4343.795, "pnl": 10.831, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-08 09:00", "close_time": "2026-06-08 13:34", "symbol": "Interval_120M", "direction": "buy", "qty": 0.05, "entry": 4342.45, "pnl": -44.328, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-08 09:05", "close_time": "2026-06-08 09:06", "symbol": "STT_5M", "direction": "sell", "qty": 0.36, "entry": 4339.235, "pnl": 5.123, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-08 09:10", "close_time": "2026-06-08 09:14", "symbol": "Interval_5M", "direction": "buy", "qty": 0.22, "entry": 4337.35, "pnl": -9.235, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-08 09:30", "close_time": "2026-06-08 09:30", "symbol": "Interval_5M", "direction": "buy", "qty": 0.17, "entry": 4314.815, "pnl": -11.741, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-08 10:00", "close_time": "2026-06-08 10:09", "symbol": "STT_5M", "direction": "buy", "qty": 0.33, "entry": 4325.83, "pnl": -7.656, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-08 10:45", "close_time": "2026-06-08 13:30", "symbol": "STT_15M", "direction": "sell", "qty": 0.16, "entry": 4315.975, "pnl": 13.705, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-08 10:50", "close_time": "2026-06-08 11:11", "symbol": "STT_5M", "direction": "buy", "qty": 0.22, "entry": 4317.435, "pnl": -11.333, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-08 11:30", "close_time": "2026-06-08 11:47", "symbol": "STT_5M", "direction": "sell", "qty": 0.44, "entry": 4307.33, "pnl": -5.717, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-08 11:30", "close_time": "2026-06-08 11:47", "symbol": "STT_30M", "direction": "sell", "qty": 0.1, "entry": 4307.33, "pnl": -5.717, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-08 12:05", "close_time": "2026-06-08 12:34", "symbol": "Interval_5M", "direction": "sell", "qty": 0.23, "entry": 4314.92, "pnl": 1.963, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-08 12:35", "close_time": "2026-06-08 13:13", "symbol": "STT_5M", "direction": "sell", "qty": 0.3, "entry": 4313.55, "pnl": 6.084, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-08 14:35", "close_time": "2026-06-08 15:24", "symbol": "STT_5M", "direction": "sell", "qty": 0.19, "entry": 4299.58, "pnl": -13.073, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-08 14:45", "close_time": "2026-06-08 15:24", "symbol": "STT_15M", "direction": "sell", "qty": 0.17, "entry": 4298.515, "pnl": -14.297, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-08 16:00", "close_time": "2026-06-08 17:30", "symbol": "STT_5M", "direction": "sell", "qty": 0.14, "entry": 4294.59, "pnl": 16.491, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-08 16:10", "close_time": "2026-06-08 17:28", "symbol": "Interval_5M", "direction": "buy", "qty": 0.19, "entry": 4294.575, "pnl": -10.64, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-08 17:45", "close_time": "2026-06-08 17:45", "symbol": "Interval_15M", "direction": "buy", "qty": 0.11, "entry": 4293.735, "pnl": 2.525, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-08 18:00", "close_time": "2026-06-08 18:02", "symbol": "Interval_5M", "direction": "sell", "qty": 0.18, "entry": 4294.455, "pnl": 2.946, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-08 18:15", "close_time": "2026-06-08 19:14", "symbol": "STT_15M", "direction": "buy", "qty": 0.11, "entry": 4294.7, "pnl": 19.304, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-08 19:00", "close_time": "2026-06-08 19:15", "symbol": "STT_30M", "direction": "buy", "qty": 0.14, "entry": 4302.19, "pnl": 17.753, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-08 19:15", "close_time": "2026-06-08 20:30", "symbol": "Pro_5Mbuy_TP1", "direction": "Pro_5Mbuy_TP1", "qty": 0.01, "entry": 67.7, "pnl": 0.95, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-08 19:15", "close_time": "2026-06-08 21:06", "symbol": "Pro_5Mbuy_TP2", "direction": "Pro_5Mbuy_TP2", "qty": 0.01, "entry": 67.7, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-08 19:15", "close_time": "2026-06-08 21:06", "symbol": "Pro_5Mbuy_TP3", "direction": "Pro_5Mbuy_TP3", "qty": 0.01, "entry": 67.7, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-08 19:25", "close_time": "2026-06-08 20:42", "symbol": "Interval_5M", "direction": "sell", "qty": 0.17, "entry": 4325.015, "pnl": -11.541, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-08 19:45", "close_time": "2026-06-08 20:45", "symbol": "Interval_15M", "direction": "sell", "qty": 0.11, "entry": 4324.215, "pnl": 27.955, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-08 20:15", "close_time": "2026-06-08 20:42", "symbol": "STT_5M", "direction": "sell", "qty": 0.19, "entry": 4322.56, "pnl": -13.373, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-08 20:45", "close_time": "2026-06-08 21:06", "symbol": "Pro_15Mbuy_TP1", "direction": "Pro_15Mbuy_TP1", "qty": 0.01, "entry": 68.8, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-08 20:45", "close_time": "2026-06-08 21:06", "symbol": "Pro_15Mbuy_TP2", "direction": "Pro_15Mbuy_TP2", "qty": 0.01, "entry": 68.8, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-08 20:45", "close_time": "2026-06-08 21:06", "symbol": "Pro_15Mbuy_TP3", "direction": "Pro_15Mbuy_TP3", "qty": 0.01, "entry": 68.8, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-08 21:00", "close_time": "2026-06-08 21:06", "symbol": "STT_15M", "direction": "buy", "qty": 0.18, "entry": 4333.34, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-08 21:10", "close_time": "2026-06-08 21:30", "symbol": "STT_5M", "direction": "sell", "qty": 0.21, "entry": 4324.275, "pnl": -11.901, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-08 21:30", "close_time": "2026-06-08 22:11", "symbol": "Interval_30M", "direction": "sell", "qty": 0.08, "entry": 4331.475, "pnl": 14.084, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-08 21:40", "close_time": "2026-06-08 21:57", "symbol": "STT_5M", "direction": "buy", "qty": 0.2, "entry": 4340.67, "pnl": -12.207, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-08 22:20", "close_time": "2026-06-08 22:46", "symbol": "Interval_5M", "direction": "buy", "qty": 0.18, "entry": 4321.76, "pnl": 4.608, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-08 22:35", "close_time": "2026-06-08 22:59", "symbol": "STT_5M", "direction": "buy", "qty": 0.34, "entry": 4322.36, "pnl": 6.623, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-08 22:55", "close_time": "2026-06-08 23:01", "symbol": "STT_5M", "direction": "buy", "qty": 0.25, "entry": 4326.545, "pnl": 9.161, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-08 23:15", "close_time": "2026-06-08 23:24", "symbol": "STT_15M", "direction": "buy", "qty": 0.21, "entry": 4325.48, "pnl": 9.999, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-08 23:40", "close_time": "2026-06-09 03:14", "symbol": "Interval_5M", "direction": "sell", "qty": 0.19, "entry": 4336.635, "pnl": 6.506, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-09 00:00", "close_time": "2026-06-09 00:37", "symbol": "STT_30M", "direction": "buy", "qty": 0.12, "entry": 4341.84, "pnl": 0.93, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-09 00:55", "close_time": "2026-06-09 03:10", "symbol": "STT_5M", "direction": "sell", "qty": 0.28, "entry": 4338.12, "pnl": 6.483, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-09 01:00", "close_time": "2026-06-09 01:10", "symbol": "Interval_15M", "direction": "sell", "qty": 0.13, "entry": 4340.775, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-09 03:30", "close_time": "2026-06-09 06:00", "symbol": "Interval_5M", "direction": "buy", "qty": 0.36, "entry": 4327.83, "pnl": 5.41, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-09 04:00", "close_time": "2026-06-09 06:00", "symbol": "Interval_15M", "direction": "buy", "qty": 0.16, "entry": 4326.63, "pnl": 5.51, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-09 06:30", "close_time": "2026-06-09 07:28", "symbol": "STT_15M", "direction": "sell", "qty": 0.42, "entry": 4325.13, "pnl": 3.538, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-09 07:50", "close_time": "2026-06-09 08:23", "symbol": "Pro_5Msell_TP1", "direction": "Pro_5Msell_TP1", "qty": 0.01, "entry": 67.9, "pnl": 0.25, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-09 07:50", "close_time": "2026-06-09 16:44", "symbol": "Pro_5Msell_TP2", "direction": "Pro_5Msell_TP2", "qty": 0.01, "entry": 67.9, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-09 07:50", "close_time": "2026-06-09 16:44", "symbol": "Pro_5Msell_TP3", "direction": "Pro_5Msell_TP3", "qty": 0.01, "entry": 67.9, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-09 08:15", "close_time": "2026-06-09 09:17", "symbol": "STT_5M", "direction": "buy", "qty": 0.31, "entry": 4322.85, "pnl": 7.181, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-09 09:30", "close_time": "2026-06-09 16:44", "symbol": "STT_30M", "direction": "buy", "qty": 0.12, "entry": 4335.54, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-09 09:30", "close_time": "2026-06-09 16:44", "symbol": "STT_15M", "direction": "buy", "qty": 0.12, "entry": 4335.54, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-09 09:35", "close_time": "2026-06-09 16:44", "symbol": "Pro_5Mbuy_TP1", "direction": "Pro_5Mbuy_TP1", "qty": 0.01, "entry": 68.2, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-09 09:35", "close_time": "2026-06-09 16:44", "symbol": "Pro_5Mbuy_TP2", "direction": "Pro_5Mbuy_TP2", "qty": 0.01, "entry": 68.2, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-09 09:35", "close_time": "2026-06-09 16:44", "symbol": "Pro_5Mbuy_TP3", "direction": "Pro_5Mbuy_TP3", "qty": 0.01, "entry": 68.2, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-09 09:50", "close_time": "2026-06-09 11:47", "symbol": "Interval_5M", "direction": "sell", "qty": 0.25, "entry": 4334.13, "pnl": -7.951, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-09 10:15", "close_time": "2026-06-09 12:21", "symbol": "Interval_15M", "direction": "sell", "qty": 0.18, "entry": 4333.17, "pnl": 4.28, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-09 10:45", "close_time": "2026-06-09 12:18", "symbol": "STT_5M", "direction": "buy", "qty": 0.29, "entry": 4338.805, "pnl": -8.499, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-09 12:35", "close_time": "2026-06-09 12:50", "symbol": "Interval_5M", "direction": "buy", "qty": 0.3, "entry": 4325.545, "pnl": 5.84, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-09 13:00", "close_time": "2026-06-09 13:32", "symbol": "STT_5M", "direction": "buy", "qty": 0.28, "entry": 4332.585, "pnl": 6.544, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-09 13:50", "close_time": "2026-06-09 14:29", "symbol": "Interval_5M", "direction": "sell", "qty": 0.26, "entry": 4346.435, "pnl": 7.39, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-09 15:00", "close_time": "2026-06-09 19:50", "symbol": "STT_5M", "direction": "sell", "qty": 0.24, "entry": 4330.725, "pnl": -10.502, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-09 15:20", "close_time": "2026-06-09 16:12", "symbol": "Interval_5M", "direction": "buy", "qty": 0.25, "entry": 4329.04, "pnl": 6.012, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-09 16:00", "close_time": "2026-06-09 16:12", "symbol": "Interval_15M", "direction": "buy", "qty": 0.17, "entry": 4326.83, "pnl": 4.699, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-09 20:00", "close_time": "2026-06-09 20:29", "symbol": "Interval_15M", "direction": "sell", "qty": 0.19, "entry": 4340.02, "pnl": 4.453, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-09 20:25", "close_time": "2026-06-09 20:30", "symbol": "STT_5M", "direction": "sell", "qty": 0.5, "entry": 4338.65, "pnl": 3.66, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-09 21:20", "close_time": "2026-06-09 21:48", "symbol": "STT_5M", "direction": "sell", "qty": 0.23, "entry": 4334.105, "pnl": -11.018, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-09 21:40", "close_time": "2026-06-09 21:46", "symbol": "Interval_5M", "direction": "buy", "qty": 0.28, "entry": 4332.16, "pnl": 3.756, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-09 21:45", "close_time": "2026-06-09 22:15", "symbol": "Pro_5Msell_TP1", "direction": "Pro_5Msell_TP1", "qty": 0.01, "entry": 68.0, "pnl": 0.45, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-09 21:45", "close_time": "2026-06-09 22:29", "symbol": "Pro_5Msell_TP2", "direction": "Pro_5Msell_TP2", "qty": 0.01, "entry": 68.0, "pnl": 0.95, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-09 21:45", "close_time": "2026-06-09 22:38", "symbol": "Pro_5Msell_TP3", "direction": "Pro_5Msell_TP3", "qty": 0.01, "entry": 68.0, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-09 22:15", "close_time": "2026-06-09 22:18", "symbol": "STT_5M", "direction": "sell", "qty": 0.16, "entry": 4321.25, "pnl": 14.468, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-09 22:25", "close_time": "2026-06-09 22:38", "symbol": "Interval_5M", "direction": "buy", "qty": 0.15, "entry": 4318.745, "pnl": -13.344, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-09 22:30", "close_time": "2026-06-09 22:38", "symbol": "Pro_15Msell_TP1", "direction": "Pro_15Msell_TP1", "qty": 0.01, "entry": 66.95, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-09 22:30", "close_time": "2026-06-09 22:38", "symbol": "Pro_15Msell_TP2", "direction": "Pro_15Msell_TP2", "qty": 0.01, "entry": 66.95, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-09 22:30", "close_time": "2026-06-09 22:38", "symbol": "Pro_15Msell_TP3", "direction": "Pro_15Msell_TP3", "qty": 0.01, "entry": 66.95, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-09 22:55", "close_time": "2026-06-09 23:28", "symbol": "Interval_5M", "direction": "buy", "qty": 0.12, "entry": 4298.23, "pnl": -16.131, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-09 23:00", "close_time": "2026-06-09 23:28", "symbol": "Interval_15M", "direction": "buy", "qty": 0.1, "entry": 4300.535, "pnl": -19.891, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-09 23:00", "close_time": "2026-06-09 23:28", "symbol": "STT_30M", "direction": "sell", "qty": 0.04, "entry": 4300.535, "pnl": -19.891, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 00:25", "close_time": "2026-06-10 00:38", "symbol": "Interval_5M", "direction": "buy", "qty": 0.13, "entry": 4262.13, "pnl": -15.74, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 00:45", "close_time": "2026-06-10 02:19", "symbol": "STT_5M", "direction": "sell", "qty": 0.1, "entry": 4244.7, "pnl": -24.619, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 01:00", "close_time": "2026-06-10 07:18", "symbol": "Interval_15M", "direction": "buy", "qty": 0.08, "entry": 4252.165, "pnl": -23.556, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 01:00", "close_time": "2026-06-10 07:18", "symbol": "Interval_30M", "direction": "buy", "qty": 0.07, "entry": 4252.165, "pnl": -23.556, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 03:00", "close_time": "2026-06-10 06:51", "symbol": "Interval_60M", "direction": "buy", "qty": 0.06, "entry": 4270.105, "pnl": -32.912, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 03:30", "close_time": "2026-06-10 06:00", "symbol": "Interval_5M", "direction": "buy", "qty": 0.22, "entry": 4257.47, "pnl": -8.901, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 06:15", "close_time": "2026-06-10 06:38", "symbol": "STT_15M", "direction": "sell", "qty": 0.33, "entry": 4255.545, "pnl": 4.548, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 07:05", "close_time": "2026-06-10 07:12", "symbol": "Interval_5M", "direction": "buy", "qty": 0.25, "entry": 4246.42, "pnl": -7.971, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 07:55", "close_time": "2026-06-10 08:32", "symbol": "Interval_5M", "direction": "buy", "qty": 0.2, "entry": 4220.84, "pnl": -9.852, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 08:00", "close_time": "2026-06-10 08:36", "symbol": "Interval_15M", "direction": "buy", "qty": 0.12, "entry": 4222.155, "pnl": -16.407, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 08:35", "close_time": "2026-06-10 09:43", "symbol": "STT_5M", "direction": "sell", "qty": 0.11, "entry": 4206.705, "pnl": 20.53, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 08:50", "close_time": "2026-06-10 08:58", "symbol": "Interval_5M", "direction": "buy", "qty": 0.18, "entry": 4203.76, "pnl": 10.647, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 09:00", "close_time": "2026-06-10 09:05", "symbol": "Interval_30M", "direction": "buy", "qty": 0.08, "entry": 4218.42, "pnl": -24.811, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 10:00", "close_time": "2026-06-10 19:45", "symbol": "Interval_60M", "direction": "buy", "qty": 0.06, "entry": 4188.7, "pnl": -35.708, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 10:30", "close_time": "2026-06-10 10:33", "symbol": "STT_5M", "direction": "buy", "qty": 0.23, "entry": 4187.91, "pnl": -10.922, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 10:55", "close_time": "2026-06-10 13:33", "symbol": "STT_5M", "direction": "sell", "qty": 0.15, "entry": 4174.985, "pnl": -17.041, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 12:45", "close_time": "2026-06-10 13:30", "symbol": "STT_15M", "direction": "sell", "qty": 0.17, "entry": 4173.595, "pnl": -14.748, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 13:50", "close_time": "2026-06-10 14:04", "symbol": "Interval_5M", "direction": "sell", "qty": 0.22, "entry": 4202.68, "pnl": -8.936, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 13:55", "close_time": "2026-06-10 14:06", "symbol": "Pro_5Mbuy_TP1", "direction": "Pro_5Mbuy_TP1", "qty": 0.01, "entry": 64.4, "pnl": 0.55, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 13:55", "close_time": "2026-06-11 01:14", "symbol": "Pro_5Mbuy_TP2", "direction": "Pro_5Mbuy_TP2", "qty": 0.01, "entry": 64.4, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-10 13:55", "close_time": "2026-06-11 01:14", "symbol": "Pro_5Mbuy_TP3", "direction": "Pro_5Mbuy_TP3", "qty": 0.01, "entry": 64.4, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-10 14:10", "close_time": "2026-06-10 15:13", "symbol": "Interval_5M", "direction": "sell", "qty": 0.21, "entry": 4214.185, "pnl": 16.565, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 14:30", "close_time": "2026-06-10 15:25", "symbol": "Interval_15M", "direction": "sell", "qty": 0.12, "entry": 4211.635, "pnl": 14.769, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 15:00", "close_time": "2026-06-10 18:07", "symbol": "Interval_120M", "direction": "buy", "qty": 0.04, "entry": 4204.005, "pnl": -47.465, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 15:10", "close_time": "2026-06-10 15:12", "symbol": "STT_5M", "direction": "buy", "qty": 0.37, "entry": 4207.36, "pnl": -6.799, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 15:35", "close_time": "2026-06-10 15:52", "symbol": "Interval_5M", "direction": "buy", "qty": 0.22, "entry": 4194.875, "pnl": -9.079, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 16:00", "close_time": "2026-06-10 16:02", "symbol": "Interval_5M", "direction": "buy", "qty": 0.22, "entry": 4186.085, "pnl": -9.069, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 16:05", "close_time": "2026-06-10 20:10", "symbol": "STT_5M", "direction": "sell", "qty": 0.1, "entry": 4164.29, "pnl": 22.102, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 16:05", "close_time": "2026-06-10 20:10", "symbol": "Pro_5Msell_TP1", "direction": "Pro_5Msell_TP1", "qty": 0.01, "entry": 63.8, "pnl": 22.102, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 16:05", "close_time": "2026-06-10 20:10", "symbol": "Pro_5Msell_TP2", "direction": "Pro_5Msell_TP2", "qty": 0.01, "entry": 63.8, "pnl": 22.102, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 16:05", "close_time": "2026-06-10 20:10", "symbol": "Pro_5Msell_TP3", "direction": "Pro_5Msell_TP3", "qty": 0.01, "entry": 63.8, "pnl": 22.102, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 16:30", "close_time": "2026-06-10 22:57", "symbol": "STT_30M", "direction": "sell", "qty": 0.05, "entry": 4172.34, "pnl": 51.32, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 18:15", "close_time": "2026-06-10 20:10", "symbol": "STT_15M", "direction": "sell", "qty": 0.13, "entry": 4161.205, "pnl": 16.702, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 19:00", "close_time": "2026-06-10 19:03", "symbol": "Interval_5M", "direction": "sell", "qty": 0.19, "entry": 4174.81, "pnl": 3.583, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 20:00", "close_time": "2026-06-10 20:12", "symbol": "Interval_5M", "direction": "buy", "qty": 0.17, "entry": 4147.79, "pnl": -11.787, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 20:25", "close_time": "2026-06-10 20:30", "symbol": "Interval_5M", "direction": "buy", "qty": 0.18, "entry": 4134.615, "pnl": 13.988, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 20:45", "close_time": "2026-06-10 20:46", "symbol": "Interval_15M", "direction": "buy", "qty": 0.09, "entry": 4160.625, "pnl": 2.917, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 21:00", "close_time": "2026-06-10 21:38", "symbol": "Interval_30M", "direction": "buy", "qty": 0.07, "entry": 4147.235, "pnl": 17.215, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 21:00", "close_time": "2026-06-10 21:38", "symbol": "STT_15M", "direction": "sell", "qty": 0.09, "entry": 4147.235, "pnl": 17.215, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 21:25", "close_time": "2026-06-10 21:36", "symbol": "STT_5M", "direction": "buy", "qty": 0.22, "entry": 4144.23, "pnl": 10.262, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 21:40", "close_time": "2026-06-11 01:14", "symbol": "Pro_5Mbuy_TP1", "direction": "Pro_5Mbuy_TP1", "qty": 0.01, "entry": 65.1, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-10 21:40", "close_time": "2026-06-11 01:14", "symbol": "Pro_5Mbuy_TP2", "direction": "Pro_5Mbuy_TP2", "qty": 0.01, "entry": 65.1, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-10 21:40", "close_time": "2026-06-11 01:14", "symbol": "Pro_5Mbuy_TP3", "direction": "Pro_5Mbuy_TP3", "qty": 0.01, "entry": 65.1, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-10 21:45", "close_time": "2026-06-11 01:14", "symbol": "Pro_15Mbuy_TP1", "direction": "Pro_15Mbuy_TP1", "qty": 0.01, "entry": 65.55, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-10 21:45", "close_time": "2026-06-11 01:14", "symbol": "Pro_15Mbuy_TP2", "direction": "Pro_15Mbuy_TP2", "qty": 0.01, "entry": 65.55, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-10 21:45", "close_time": "2026-06-11 01:14", "symbol": "Pro_15Mbuy_TP3", "direction": "Pro_15Mbuy_TP3", "qty": 0.01, "entry": 65.55, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-10 22:00", "close_time": "2026-06-10 22:21", "symbol": "Interval_5M", "direction": "sell", "qty": 0.11, "entry": 4179.605, "pnl": 14.131, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 23:45", "close_time": "2026-06-11 01:44", "symbol": "Interval_15M", "direction": "buy", "qty": 0.08, "entry": 4128.6, "pnl": -25.938, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 00:10", "close_time": "2026-06-11 00:32", "symbol": "STT_5M", "direction": "buy", "qty": 0.29, "entry": 4130.17, "pnl": -8.725, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 00:45", "close_time": "2026-06-11 01:03", "symbol": "STT_5M", "direction": "sell", "qty": 0.23, "entry": 4122.445, "pnl": -11.091, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 01:15", "close_time": "2026-06-11 01:37", "symbol": "STT_15M", "direction": "sell", "qty": 0.13, "entry": 4118.17, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-11 01:15", "close_time": "2026-06-11 01:37", "symbol": "STT_5M", "direction": "sell", "qty": 0.14, "entry": 4118.17, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-11 01:35", "close_time": "2026-06-11 02:02", "symbol": "Interval_5M", "direction": "buy", "qty": 0.16, "entry": 4111.265, "pnl": 7.183, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 02:55", "close_time": "2026-06-11 03:11", "symbol": "Interval_5M", "direction": "buy", "qty": 0.21, "entry": 4101.47, "pnl": -9.731, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 03:20", "close_time": "2026-06-11 06:00", "symbol": "Interval_5M", "direction": "buy", "qty": 0.22, "entry": 4089.95, "pnl": -9.242, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 03:25", "close_time": "2026-06-11 06:00", "symbol": "Pro_5Msell_TP1", "direction": "Pro_5Msell_TP1", "qty": 0.01, "entry": 63.9, "pnl": 0.65, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 03:25", "close_time": "2026-06-11 06:16", "symbol": "Pro_5Msell_TP2", "direction": "Pro_5Msell_TP2", "qty": 0.01, "entry": 63.9, "pnl": 1.3, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 03:25", "close_time": "2026-06-11 08:06", "symbol": "Pro_5Msell_TP3", "direction": "Pro_5Msell_TP3", "qty": 0.01, "entry": 63.9, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-11 03:45", "close_time": "2026-06-11 06:00", "symbol": "Interval_15M", "direction": "buy", "qty": 0.1, "entry": 4091.565, "pnl": -19.701, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 04:20", "close_time": "2026-06-11 06:02", "symbol": "Interval_5M", "direction": "buy", "qty": 0.22, "entry": 4074.105, "pnl": -8.935, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 04:30", "close_time": "2026-06-11 06:16", "symbol": "Interval_30M", "direction": "buy", "qty": 0.07, "entry": 4078.425, "pnl": -28.644, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 04:45", "close_time": "2026-06-11 06:07", "symbol": "Interval_15M", "direction": "buy", "qty": 0.11, "entry": 4072.735, "pnl": -18.499, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 06:05", "close_time": "2026-06-11 06:07", "symbol": "Interval_5M", "direction": "buy", "qty": 0.25, "entry": 4063.4, "pnl": -8.144, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 06:15", "close_time": "2026-06-11 07:14", "symbol": "Pro_15Msell_TP1", "direction": "Pro_15Msell_TP1", "qty": 0.01, "entry": 62.9, "pnl": 0.95, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 06:15", "close_time": "2026-06-11 08:06", "symbol": "Pro_15Msell_TP2", "direction": "Pro_15Msell_TP2", "qty": 0.01, "entry": 62.9, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-11 06:15", "close_time": "2026-06-11 08:06", "symbol": "Pro_15Msell_TP3", "direction": "Pro_15Msell_TP3", "qty": 0.01, "entry": 62.9, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-11 06:25", "close_time": "2026-06-11 06:37", "symbol": "Interval_5M", "direction": "buy", "qty": 0.19, "entry": 4038.57, "pnl": 19.478, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 06:30", "close_time": "2026-06-11 07:13", "symbol": "Interval_15M", "direction": "buy", "qty": 0.1, "entry": 4045.015, "pnl": -19.742, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 07:15", "close_time": "2026-06-11 07:26", "symbol": "STT_5M", "direction": "sell", "qty": 0.1, "entry": 4029.875, "pnl": -25.402, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 08:20", "close_time": "2026-06-11 09:16", "symbol": "STT_5M", "direction": "buy", "qty": 0.08, "entry": 4065.205, "pnl": 27.715, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 09:00", "close_time": "2026-06-11 09:16", "symbol": "STT_30M", "direction": "buy", "qty": 0.06, "entry": 4075.92, "pnl": 15.777, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 09:00", "close_time": "2026-06-11 09:16", "symbol": "STT_15M", "direction": "buy", "qty": 0.13, "entry": 4075.92, "pnl": 15.777, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 09:05", "close_time": "2026-06-11 09:07", "symbol": "Interval_5M", "direction": "sell", "qty": 0.11, "entry": 4079.0, "pnl": 11.672, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 09:15", "close_time": "2026-06-11 20:09", "symbol": "Pro_5Mbuy_TP1", "direction": "Pro_5Mbuy_TP1", "qty": 0.01, "entry": 63.95, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-11 09:15", "close_time": "2026-06-11 20:09", "symbol": "Pro_5Mbuy_TP2", "direction": "Pro_5Mbuy_TP2", "qty": 0.01, "entry": 63.95, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-11 09:15", "close_time": "2026-06-11 20:09", "symbol": "Pro_5Mbuy_TP3", "direction": "Pro_5Mbuy_TP3", "qty": 0.01, "entry": 63.95, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-11 10:00", "close_time": "2026-06-11 10:29", "symbol": "Interval_15M", "direction": "sell", "qty": 0.07, "entry": 4101.91, "pnl": 19.683, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 10:40", "close_time": "2026-06-11 13:41", "symbol": "STT_5M", "direction": "sell", "qty": 0.08, "entry": 4066.92, "pnl": -30.386, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 10:45", "close_time": "2026-06-11 12:10", "symbol": "Interval_5M", "direction": "buy", "qty": 0.13, "entry": 4059.51, "pnl": 20.111, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 12:00", "close_time": "2026-06-11 13:33", "symbol": "STT_30M", "direction": "buy", "qty": 0.14, "entry": 4072.675, "pnl": 17.948, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 12:25", "close_time": "2026-06-11 13:27", "symbol": "Interval_5M", "direction": "sell", "qty": 0.18, "entry": 4081.175, "pnl": 6.696, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 13:30", "close_time": "2026-06-11 13:32", "symbol": "STT_15M", "direction": "sell", "qty": 0.21, "entry": 4075.365, "pnl": -12.194, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 13:55", "close_time": "2026-06-11 14:01", "symbol": "Interval_5M", "direction": "sell", "qty": 0.18, "entry": 4094.3, "pnl": 6.173, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 14:05", "close_time": "2026-06-11 15:15", "symbol": "STT_5M", "direction": "sell", "qty": 0.17, "entry": 4084.95, "pnl": -14.8, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 14:30", "close_time": "2026-06-11 14:54", "symbol": "STT_15M", "direction": "buy", "qty": 0.21, "entry": 4086.84, "pnl": 10.018, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 15:35", "close_time": "2026-06-11 16:29", "symbol": "Interval_5M", "direction": "sell", "qty": 0.22, "entry": 4107.25, "pnl": 8.14, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 15:40", "close_time": "2026-06-11 15:51", "symbol": "STT_5M", "direction": "sell", "qty": 0.36, "entry": 4104.6, "pnl": 5.091, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 16:10", "close_time": "2026-06-11 16:29", "symbol": "STT_5M", "direction": "buy", "qty": 0.18, "entry": 4111.775, "pnl": -13.601, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 17:05", "close_time": "2026-06-11 17:47", "symbol": "Interval_5M", "direction": "buy", "qty": 0.25, "entry": 4085.61, "pnl": 8.785, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 18:15", "close_time": "2026-06-11 20:09", "symbol": "STT_15M", "direction": "buy", "qty": 0.16, "entry": 4092.255, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-11 18:25", "close_time": "2026-06-11 19:15", "symbol": "STT_5M", "direction": "buy", "qty": 0.33, "entry": 4093.88, "pnl": -7.692, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 19:25", "close_time": "2026-06-11 20:09", "symbol": "Pro_5Msell_TP1", "direction": "Pro_5Msell_TP1", "qty": 0.01, "entry": 63.7, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-11 19:25", "close_time": "2026-06-11 20:09", "symbol": "Pro_5Msell_TP2", "direction": "Pro_5Msell_TP2", "qty": 0.01, "entry": 63.7, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-11 19:25", "close_time": "2026-06-11 20:09", "symbol": "Pro_5Msell_TP3", "direction": "Pro_5Msell_TP3", "qty": 0.01, "entry": 63.7, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-11 19:30", "close_time": "2026-06-11 19:40", "symbol": "STT_5M", "direction": "buy", "qty": 0.33, "entry": 4090.54, "pnl": -7.655, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 20:00", "close_time": "2026-06-11 20:12", "symbol": "STT_5M", "direction": "sell", "qty": 0.31, "entry": 4080.395, "pnl": 5.968, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 20:25", "close_time": "2026-06-11 20:32", "symbol": "Interval_5M", "direction": "buy", "qty": 0.2, "entry": 4069.36, "pnl": -10.199, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 21:50", "close_time": "2026-06-11 22:09", "symbol": "STT_5M", "direction": "buy", "qty": 0.14, "entry": 4083.885, "pnl": -17.938, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 22:15", "close_time": "2026-06-11 22:40", "symbol": "STT_15M", "direction": "sell", "qty": 0.08, "entry": 4061.14, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-11 23:10", "close_time": "2026-06-11 23:48", "symbol": "STT_5M", "direction": "buy", "qty": 0.21, "entry": 4080.995, "pnl": 10.757, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-12 00:00", "close_time": "2026-06-12 00:14", "symbol": "Interval_5M", "direction": "sell", "qty": 0.16, "entry": 4088.905, "pnl": -12.393, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 00:15", "close_time": "2026-06-12 01:19", "symbol": "Pro_5Mbuy_TP1", "direction": "Pro_5Mbuy_TP1", "qty": 0.01, "entry": 64.55, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 00:15", "close_time": "2026-06-12 01:19", "symbol": "Pro_5Mbuy_TP2", "direction": "Pro_5Mbuy_TP2", "qty": 0.01, "entry": 64.55, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 00:15", "close_time": "2026-06-12 01:19", "symbol": "Pro_5Mbuy_TP3", "direction": "Pro_5Mbuy_TP3", "qty": 0.01, "entry": 64.55, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 00:30", "close_time": "2026-06-12 00:30", "symbol": "Interval_15M", "direction": "sell", "qty": 0.09, "entry": 4079.755, "pnl": 0.063, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-12 00:30", "close_time": "2026-06-12 00:30", "symbol": "STT_5M", "direction": "sell", "qty": 0.09, "entry": 4079.755, "pnl": 0.063, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-12 01:10", "close_time": "2026-06-12 01:27", "symbol": "Interval_5M", "direction": "buy", "qty": 0.19, "entry": 4076.685, "pnl": 5.299, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-12 01:30", "close_time": "2026-06-12 01:32", "symbol": "STT_30M", "direction": "buy", "qty": 0.08, "entry": 4101.68, "pnl": 26.48, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-12 01:30", "close_time": "2026-06-12 01:32", "symbol": "STT_15M", "direction": "buy", "qty": 0.08, "entry": 4101.68, "pnl": 26.48, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-12 01:45", "close_time": "2026-06-12 01:56", "symbol": "Pro_15Mbuy_TP1", "direction": "Pro_15Mbuy_TP1", "qty": 0.01, "entry": 66.45, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 01:45", "close_time": "2026-06-12 01:56", "symbol": "Pro_15Mbuy_TP2", "direction": "Pro_15Mbuy_TP2", "qty": 0.01, "entry": 66.45, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 01:45", "close_time": "2026-06-12 01:56", "symbol": "Pro_15Mbuy_TP3", "direction": "Pro_15Mbuy_TP3", "qty": 0.01, "entry": 66.45, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 01:50", "close_time": "2026-06-12 03:00", "symbol": "Interval_5M", "direction": "sell", "qty": 0.11, "entry": 4154.485, "pnl": -18.294, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 02:00", "close_time": "2026-06-12 12:39", "symbol": "Pro_30Mbuy_TP1", "direction": "Pro_30Mbuy_TP1", "qty": 0.01, "entry": 65.9, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 02:00", "close_time": "2026-06-12 12:39", "symbol": "Pro_30Mbuy_TP2", "direction": "Pro_30Mbuy_TP2", "qty": 0.01, "entry": 65.9, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 02:00", "close_time": "2026-06-12 12:39", "symbol": "Pro_30Mbuy_TP3", "direction": "Pro_30Mbuy_TP3", "qty": 0.01, "entry": 65.9, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 02:30", "close_time": "2026-06-12 03:12", "symbol": "Interval_15M", "direction": "sell", "qty": 0.07, "entry": 4153.16, "pnl": -28.739, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 03:25", "close_time": "2026-06-12 03:30", "symbol": "Interval_5M", "direction": "sell", "qty": 0.13, "entry": 4191.85, "pnl": -15.914, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 03:40", "close_time": "2026-06-12 06:43", "symbol": "Interval_5M", "direction": "sell", "qty": 0.12, "entry": 4208.615, "pnl": -16.767, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 04:00", "close_time": "2026-06-12 04:00", "symbol": "Interval_15M", "direction": "sell", "qty": 0.07, "entry": 4208.91, "pnl": 3.3, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-12 04:00", "close_time": "2026-06-12 04:00", "symbol": "Pro_1Hbuy_TP1", "direction": "Pro_1Hbuy_TP1", "qty": 0.01, "entry": 67.3, "pnl": 3.3, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-12 04:00", "close_time": "2026-06-12 04:00", "symbol": "Pro_1Hbuy_TP2", "direction": "Pro_1Hbuy_TP2", "qty": 0.01, "entry": 67.3, "pnl": 3.3, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-12 04:00", "close_time": "2026-06-12 04:00", "symbol": "Pro_1Hbuy_TP3", "direction": "Pro_1Hbuy_TP3", "qty": 0.01, "entry": 67.3, "pnl": 3.3, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-12 05:01", "close_time": "2026-06-12 06:57", "symbol": "Interval_30M", "direction": "sell", "qty": 0.06, "entry": 4211.195, "pnl": -33.614, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 07:00", "close_time": "2026-06-12 08:44", "symbol": "STT_15M", "direction": "buy", "qty": 0.06, "entry": 4243.515, "pnl": -39.482, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 07:05", "close_time": "2026-06-12 07:23", "symbol": "Interval_5M", "direction": "sell", "qty": 0.16, "entry": 4227.32, "pnl": 6.353, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-12 08:25", "close_time": "2026-06-12 08:44", "symbol": "STT_5M", "direction": "buy", "qty": 0.14, "entry": 4223.945, "pnl": -17.695, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 09:00", "close_time": "2026-06-12 09:05", "symbol": "STT_30M", "direction": "sell", "qty": 0.1, "entry": 4208.435, "pnl": 24.367, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-12 09:05", "close_time": "2026-06-12 12:39", "symbol": "STT_5M", "direction": "sell", "qty": 0.1, "entry": 4184.65, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 09:05", "close_time": "2026-06-12 12:39", "symbol": "Pro_5Msell_TP1", "direction": "Pro_5Msell_TP1", "qty": 0.01, "entry": 66.85, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 09:05", "close_time": "2026-06-12 12:39", "symbol": "Pro_5Msell_TP2", "direction": "Pro_5Msell_TP2", "qty": 0.01, "entry": 66.85, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 09:05", "close_time": "2026-06-12 12:39", "symbol": "Pro_5Msell_TP3", "direction": "Pro_5Msell_TP3", "qty": 0.01, "entry": 66.85, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 11:45", "close_time": "2026-06-12 11:49", "symbol": "Interval_5M", "direction": "sell", "qty": 0.2, "entry": 4199.41, "pnl": 3.481, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-12 13:45", "close_time": "2026-06-12 16:02", "symbol": "STT_15M", "direction": "sell", "qty": 0.13, "entry": 4180.62, "pnl": -18.865, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 16:20", "close_time": "2026-06-12 23:25", "symbol": "Pro_5Mbuy_TP1", "direction": "Pro_5Mbuy_TP1", "qty": 0.01, "entry": 67.05, "pnl": 0.95, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-12 16:20", "close_time": "2026-06-13 13:15", "symbol": "Pro_5Mbuy_TP2", "direction": "Pro_5Mbuy_TP2", "qty": 0.01, "entry": 67.05, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 16:20", "close_time": "2026-06-13 13:15", "symbol": "Pro_5Mbuy_TP3", "direction": "Pro_5Mbuy_TP3", "qty": 0.01, "entry": 67.05, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 16:30", "close_time": "2026-06-12 16:56", "symbol": "STT_30M", "direction": "buy", "qty": 0.06, "entry": 4213.395, "pnl": -11.753, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 16:30", "close_time": "2026-06-12 16:56", "symbol": "Interval_5M", "direction": "sell", "qty": 0.17, "entry": 4213.395, "pnl": -11.753, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 16:45", "close_time": "2026-06-12 19:30", "symbol": "Interval_15M", "direction": "sell", "qty": 0.11, "entry": 4218.445, "pnl": 17.087, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-12 18:20", "close_time": "2026-06-12 18:22", "symbol": "STT_5M", "direction": "sell", "qty": 0.29, "entry": 4217.995, "pnl": 6.305, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-12 18:30", "close_time": "2026-06-12 21:00", "symbol": "STT_15M", "direction": "sell", "qty": 0.11, "entry": 4206.935, "pnl": 18.911, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-12 19:25", "close_time": "2026-06-12 19:29", "symbol": "STT_5M", "direction": "buy", "qty": 0.37, "entry": 4209.895, "pnl": -6.717, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 19:50", "close_time": "2026-06-12 20:35", "symbol": "STT_5M", "direction": "buy", "qty": 0.19, "entry": 4210.36, "pnl": -13.383, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 21:00", "close_time": "2026-06-13 13:15", "symbol": "Pro_5Msell_TP1", "direction": "Pro_5Msell_TP1", "qty": 0.01, "entry": 66.5, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 21:00", "close_time": "2026-06-13 13:15", "symbol": "Pro_5Msell_TP2", "direction": "Pro_5Msell_TP2", "qty": 0.01, "entry": 66.5, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 21:00", "close_time": "2026-06-13 13:15", "symbol": "Pro_5Msell_TP3", "direction": "Pro_5Msell_TP3", "qty": 0.01, "entry": 66.5, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 21:10", "close_time": "2026-06-12 21:42", "symbol": "STT_5M", "direction": "buy", "qty": 0.17, "entry": 4200.3, "pnl": -14.611, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 22:15", "close_time": "2026-06-12 22:21", "symbol": "STT_5M", "direction": "sell", "qty": 0.38, "entry": 4193.18, "pnl": 5.904, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-12 22:45", "close_time": "2026-06-12 22:52", "symbol": "STT_15M", "direction": "sell", "qty": 0.15, "entry": 4184.575, "pnl": -9.506, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 22:45", "close_time": "2026-06-12 22:52", "symbol": "STT_5M", "direction": "sell", "qty": 0.26, "entry": 4184.575, "pnl": -9.506, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 23:25", "close_time": "2026-06-13 13:15", "symbol": "Pro_5Mbuy_TP1", "direction": "Pro_5Mbuy_TP1", "qty": 0.01, "entry": 67.8, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 23:25", "close_time": "2026-06-13 13:15", "symbol": "Pro_5Mbuy_TP2", "direction": "Pro_5Mbuy_TP2", "qty": 0.01, "entry": 67.8, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 23:25", "close_time": "2026-06-13 13:15", "symbol": "Pro_5Mbuy_TP3", "direction": "Pro_5Mbuy_TP3", "qty": 0.01, "entry": 67.8, "pnl": 0.0, "funding": 0.0, "result": "未開倉", "combo": ""}, {"time": "2026-06-12 23:30", "close_time": null, "symbol": "Interval_5M", "direction": "sell", "qty": 0.13, "entry": 4225.79, "pnl": 0.0, "funding": 0.0, "result": "未結束", "combo": ""}],
+  binance: [{"time": "2026-06-10 00:18:38", "close_time": "2026-06-10 00:32:39", "symbol": "ZECUSDT", "direction": "short", "qty": 0.931, "entry": 430.22, "pnl": -7.82, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 01:13:36", "close_time": "2026-06-10 03:18:23", "symbol": "STGUSDT", "direction": "long", "qty": 713.0, "entry": 0.2825, "pnl": 12.14, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-10 01:13:38", "close_time": "2026-06-10 02:04:47", "symbol": "CHZUSDT", "direction": "long", "qty": 3513.0, "entry": 0.02854, "pnl": -2.06, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 14:59:15", "close_time": "2026-06-10 22:10:04", "symbol": "GWEIUSDT", "direction": "short", "qty": 1257.0, "entry": 0.17923068, "pnl": 0.64, "funding": 0.2507, "result": "止盈", "combo": ""}, {"time": "2026-06-10 15:20:26", "close_time": "2026-06-10 15:49:19", "symbol": "CHIPUSDT", "direction": "long", "qty": 3638.0, "entry": 0.03454, "pnl": -2.49, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-10 15:20:28", "close_time": "2026-06-10 20:36:41", "symbol": "ROBOUSDT", "direction": "short", "qty": 3036.0, "entry": 0.0206, "pnl": 0.49, "funding": 0.0062, "result": "止盈", "combo": ""}, {"time": "2026-06-10 16:04:13", "close_time": "2026-06-11 08:21:37", "symbol": "CHIPUSDT", "direction": "short", "qty": 3638.0, "entry": 0.03363, "pnl": 7.33, "funding": -0.0904, "result": "止盈", "combo": ""}, {"time": "2026-06-10 20:46:54", "close_time": "2026-06-11 00:22:23", "symbol": "SENTUSDT", "direction": "short", "qty": 4061.0, "entry": 0.01526, "pnl": -0.86, "funding": 0.0031, "result": "止損", "combo": ""}, {"time": "2026-06-10 22:59:49", "close_time": "2026-06-11 00:25:36", "symbol": "GWEIUSDT", "direction": "short", "qty": 714.0, "entry": 0.17553008, "pnl": -0.48, "funding": 0.0778, "result": "止損", "combo": ""}, {"time": "2026-06-11 01:04:35", "close_time": "2026-06-11 06:21:06", "symbol": "GENIUSUSDT", "direction": "short", "qty": 621.0, "entry": 0.48327246, "pnl": 8.98, "funding": 0.0147, "result": "止盈", "combo": ""}, {"time": "2026-06-11 01:04:37", "close_time": "2026-06-11 01:24:40", "symbol": "OPGUSDT", "direction": "long", "qty": 1560.0, "entry": 0.1537, "pnl": -5.41, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 01:04:39", "close_time": "2026-06-11 01:55:30", "symbol": "1000RATSUSDT", "direction": "short", "qty": 5779.0, "entry": 0.03319522, "pnl": -5.23, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 01:04:41", "close_time": "2026-06-11 04:53:12", "symbol": "CHZUSDT", "direction": "long", "qty": 5502.0, "entry": 0.02793, "pnl": -3.5, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 02:09:39", "close_time": "2026-06-11 02:15:23", "symbol": "JCTUSDT", "direction": "short", "qty": 30762.0, "entry": 0.00643537, "pnl": -7.76, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 02:09:41", "close_time": "2026-06-11 08:11:58", "symbol": "SOONUSDT", "direction": "short", "qty": 923.0, "entry": 0.1713, "pnl": -1.67, "funding": 0.0702, "result": "止損", "combo": ""}, {"time": "2026-06-11 02:15:33", "close_time": "2026-06-11 07:51:40", "symbol": "JCTUSDT", "direction": "long", "qty": 30762.0, "entry": 0.00663562, "pnl": -4.61, "funding": -0.0107, "result": "止損", "combo": ""}, {"time": "2026-06-11 08:47:50", "close_time": "2026-06-11 10:14:30", "symbol": "OPNUSDT", "direction": "long", "qty": 3138.0, "entry": 0.0983, "pnl": 9.57, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 08:47:52", "close_time": "2026-06-11 09:03:43", "symbol": "HUSDT", "direction": "long", "qty": 2408.0, "entry": 0.10249583, "pnl": 3.33, "funding": 0.118, "result": "止盈", "combo": ""}, {"time": "2026-06-11 08:47:54", "close_time": "2026-06-11 10:31:39", "symbol": "ORDIUSDT", "direction": "long", "qty": 60.9, "entry": 3.238, "pnl": -1.91, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 08:47:56", "close_time": "2026-06-12 17:00:11", "symbol": "STABLEUSDT", "direction": "short", "qty": 4705.0, "entry": 0.03342, "pnl": -3.78, "funding": 0.0071, "result": "止損", "combo": ""}, {"time": "2026-06-11 08:47:58", "close_time": "2026-06-11 09:26:03", "symbol": "QUSDT", "direction": "short", "qty": 7038.0, "entry": 0.01787191, "pnl": -3.9, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 09:53:10", "close_time": "2026-06-11 11:48:36", "symbol": "MORPHOUSDT", "direction": "short", "qty": 95.4, "entry": 1.99493878, "pnl": -2.39, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 09:53:12", "close_time": "2026-06-11 18:17:53", "symbol": "IPUSDT", "direction": "long", "qty": 527.4, "entry": 0.2893, "pnl": -0.72, "funding": 0.0048, "result": "止損", "combo": ""}, {"time": "2026-06-11 10:59:02", "close_time": "2026-06-11 12:42:00", "symbol": "USDCUSDT", "direction": "long", "qty": 212.0, "entry": 1.000317, "pnl": 0.14, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-11 10:59:04", "close_time": "2026-06-11 15:10:45", "symbol": "UBUSDT", "direction": "short", "qty": 1214.0, "entry": 0.13957239, "pnl": 18.48, "funding": 0.0085, "result": "止盈", "combo": ""}, {"time": "2026-06-11 12:04:46", "close_time": "2026-06-11 17:32:50", "symbol": "SENTUSDT", "direction": "short", "qty": 11425.0, "entry": 0.01509, "pnl": 2.37, "funding": 0.0083, "result": "止盈", "combo": ""}, {"time": "2026-06-11 13:09:09", "close_time": "2026-06-11 15:12:11", "symbol": "ATOMUSDT", "direction": "short", "qty": 104.79, "entry": 1.834, "pnl": -5.14, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 15:19:45", "close_time": "2026-06-11 16:05:29", "symbol": "JCTUSDT", "direction": "short", "qty": 36440.0, "entry": 0.00627454, "pnl": -4.88, "funding": 0.0124, "result": "止損", "combo": ""}, {"time": "2026-06-11 15:19:47", "close_time": "2026-06-12 08:02:26", "symbol": "SOONUSDT", "direction": "short", "qty": 1046.0, "entry": 0.1751, "pnl": 6.78, "funding": 0.2256, "result": "止盈", "combo": ""}, {"time": "2026-06-11 16:25:40", "close_time": "2026-06-11 16:58:21", "symbol": "龙虾USDT", "direction": "short", "qty": 16610.0, "entry": 0.01128, "pnl": -2.89, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 17:30:15", "close_time": "2026-06-12 01:32:55", "symbol": "PENGUUSDT", "direction": "short", "qty": 28390.0, "entry": 0.006727, "pnl": -1.32, "funding": 0.002, "result": "止損", "combo": ""}, {"time": "2026-06-11 18:34:12", "close_time": "2026-06-12 01:49:58", "symbol": "WLFIUSDT", "direction": "short", "qty": 3637.0, "entry": 0.05905, "pnl": -3.09, "funding": 0.0214, "result": "止損", "combo": ""}, {"time": "2026-06-11 19:38:20", "close_time": "2026-06-11 20:01:36", "symbol": "BTWUSDT", "direction": "short", "qty": 1954.0, "entry": 0.0870755, "pnl": -4.28, "funding": 0.0952, "result": "止損", "combo": ""}, {"time": "2026-06-11 20:43:24", "close_time": "2026-06-11 21:23:40", "symbol": "USUSDT", "direction": "short", "qty": 13461.0, "entry": 0.01257584, "pnl": -3.28, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-11 22:46:04", "close_time": "2026-06-12 14:30:23", "symbol": "TRUMPUSDT", "direction": "long", "qty": 95.57, "entry": 1.717, "pnl": 3.62, "funding": 0.0207, "result": "止盈", "combo": ""}, {"time": "2026-06-12 02:37:49", "close_time": "2026-06-12 03:07:01", "symbol": "HMSTRUSDT", "direction": "long", "qty": 428779.0, "entry": 0.0003072, "pnl": -0.41, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 02:37:51", "close_time": "2026-06-12 03:08:05", "symbol": "POWERUSDT", "direction": "long", "qty": 1097.0, "entry": 0.10498187, "pnl": -2.75, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 03:44:13", "close_time": "2026-06-12 05:52:27", "symbol": "EPICUSDT", "direction": "long", "qty": 201.1, "entry": 0.64486713, "pnl": -2.24, "funding": -0.0058, "result": "止損", "combo": ""}, {"time": "2026-06-12 03:44:14", "close_time": "2026-06-12 04:39:16", "symbol": "BANKUSDT", "direction": "long", "qty": 2440.0, "entry": 0.04651672, "pnl": -1.4, "funding": -0.0068, "result": "止損", "combo": ""}, {"time": "2026-06-12 04:50:15", "close_time": "2026-06-12 05:51:02", "symbol": "PYTHUSDT", "direction": "long", "qty": 2983.0, "entry": 0.03760052, "pnl": -0.72, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 05:55:22", "close_time": "2026-06-12 06:42:29", "symbol": "COLLECTUSDT", "direction": "long", "qty": 2044.0, "entry": 0.0619101, "pnl": -3.75, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 05:55:24", "close_time": "2026-06-12 07:42:49", "symbol": "DEXEUSDT", "direction": "long", "qty": 5.17, "entry": 21.35509478, "pnl": -2.14, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-12 07:00:02", "close_time": "2026-06-12 13:14:54", "symbol": "CRVUSDT", "direction": "long", "qty": 439.6, "entry": 0.2544, "pnl": 1.2, "funding": -0.0112, "result": "止盈", "combo": ""}, {"time": "2026-06-13 15:12:53", "close_time": "2026-06-13 18:44:12", "symbol": "OPUSDT", "direction": "long", "qty": 6635.3, "entry": 0.1043, "pnl": 19.93, "funding": 0.0041, "result": "止盈", "combo": ""}, {"time": "2026-06-13 15:12:55", "close_time": "2026-06-13 15:14:29", "symbol": "CRVUSDT", "direction": "long", "qty": 2834.0, "entry": 0.2344, "pnl": 0.05, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-13 16:13:15", "close_time": "2026-06-14 00:15:13", "symbol": "INJUSDT", "direction": "long", "qty": 108.5, "entry": 5.29020922, "pnl": -8.49, "funding": 0.0399, "result": "止損", "combo": ""}, {"time": "2026-06-13 17:43:40", "close_time": "2026-06-13 23:07:04", "symbol": "CRVUSDT", "direction": "long", "qty": 2874.7, "entry": 0.2339, "pnl": 20.04, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-13 19:45:25", "close_time": "2026-06-14 05:41:21", "symbol": "BTCUSDT", "direction": "long", "qty": 0.061, "entry": 63879.4, "pnl": 26.51, "funding": -0.0187, "result": "止盈", "combo": ""}, {"time": "2026-06-13 21:31:52", "close_time": "2026-06-13 23:00:07", "symbol": "TAOUSDT", "direction": "long", "qty": 1.925, "entry": 250.57671169, "pnl": 23.92, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-13 23:02:52", "close_time": "2026-06-14 01:22:26", "symbol": "ESPORTSUSDT", "direction": "long", "qty": 257.0, "entry": 0.21531661, "pnl": -11.63, "funding": 0.2831, "result": "止損", "combo": ""}, {"time": "2026-06-13 23:19:44", "close_time": "2026-06-14 00:04:16", "symbol": "DOGEUSDT", "direction": "long", "qty": 19835.0, "entry": 0.08867, "pnl": -11.42, "funding": -0.1752, "result": "止損", "combo": ""}, {"time": "2026-06-13 23:27:16", "close_time": "2026-06-14 08:28:58", "symbol": "TRUMPUSDT", "direction": "long", "qty": 164.22, "entry": 2.236, "pnl": -11.81, "funding": 0.4853, "result": "止損", "combo": ""}, {"time": "2026-06-14 00:27:38", "close_time": "2026-06-14 03:26:43", "symbol": "COAIUSDT", "direction": "long", "qty": 239.0, "entry": 0.5621, "pnl": 24.59, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-14 00:27:39", "close_time": "2026-06-14 05:41:59", "symbol": "ETHUSDT", "direction": "long", "qty": 1.938, "entry": 1673.56, "pnl": 24.33, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-14 01:28:01", "close_time": "2026-06-14 12:53:09", "symbol": "1000PEPEUSDT", "direction": "long", "qty": 494438.0, "entry": 0.00285229, "pnl": -11.65, "funding": 0.062, "result": "止損", "combo": ""}, {"time": "2026-06-14 03:40:18", "close_time": "2026-06-14 04:20:37", "symbol": "COAIUSDT", "direction": "long", "qty": 199.0, "entry": 0.6876, "pnl": -11.57, "funding": -0.0831, "result": "止損", "combo": ""}, {"time": "2026-06-14 04:40:39", "close_time": "2026-06-14 06:54:27", "symbol": "DOGEUSDT", "direction": "long", "qty": 20948.0, "entry": 0.08765, "pnl": 10.98, "funding": 0.0, "result": "止盈", "combo": ""}, {"time": "2026-06-14 06:41:01", "close_time": "2026-06-14 13:11:27", "symbol": "ADAUSDT", "direction": "long", "qty": 7742.0, "entry": 0.1721, "pnl": -0.11, "funding": 0.1737, "result": "止損", "combo": ""}, {"time": "2026-06-14 06:41:03", "close_time": "2026-06-14 13:11:20", "symbol": "HYPEUSDT", "direction": "long", "qty": 15.02, "entry": 60.416, "pnl": -4.49, "funding": -0.0731, "result": "止損", "combo": ""}, {"time": "2026-06-14 07:41:23", "close_time": "2026-06-14 13:11:23", "symbol": "COAIUSDT", "direction": "long", "qty": 136.0, "entry": 0.428, "pnl": 5.44, "funding": -0.01, "result": "止盈", "combo": ""}, {"time": "2026-06-14 09:42:07", "close_time": "2026-06-14 13:17:14", "symbol": "SOLUSDT", "direction": "long", "qty": 23.76, "entry": 68.89, "pnl": -11.78, "funding": 0.0, "result": "止損", "combo": ""}, {"time": "2026-06-14 12:55:01", "close_time": "2026-06-14 17:12:26", "symbol": "TAOUSDT", "direction": "long", "qty": 1.421, "entry": 273.24513723, "pnl": -11.7, "funding": -0.0191, "result": "止損", "combo": ""}, {"time": "2026-06-14 14:01:02", "close_time": "2026-06-14 17:18:22", "symbol": "NEARUSDT", "direction": "long", "qty": 365.0, "entry": 2.122, "pnl": -12.03, "funding": -0.0353, "result": "止損", "combo": ""}, {"time": "2026-06-14 14:01:04", "close_time": "2026-06-14 14:23:51", "symbol": "BEATUSDT", "direction": "long", "qty": 23.0, "entry": 7.18541739, "pnl": -11.82, "funding": 0.0, "result": "止損", "combo": ""}],
+  smc:     [],
+};
+const POSITIONS = [];
 
-// ── 工具 ─────────────────────────────────────────────────────
-const r2 = v => Math.round(v * 100) / 100;
-const r1 = v => Math.round(v * 10) / 10;
-
-function filterTrades(period) {
-  if (period === 'all') return ALL_TRADES;
-  const now = new Date();
-  let start;
-  if (period === 'week') {
-    const d = new Date(now);
-    d.setHours(0,0,0,0);
-    d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-    start = d;
-  } else if (period === 'month') {
-    start = new Date(now.getFullYear(), now.getMonth(), 1);
-  } else if (period === '30d') {
-    start = new Date(now - 30 * 86400000);
+class TabCtrl {
+  constructor(cfg) {
+    this.tab    = cfg.tab;
+    this.trades = DATA[cfg.tab] || [];
+    this.unit   = cfg.unit;
+    this.prefix = cfg.prefix;
+    this.accent = cfg.accent;
+    this.filter = 'all';
+    this.charts = {};
+    this._initCharts();
+    this.render();
   }
-  return ALL_TRADES.filter(t => new Date(t.time) >= start);
+
+  _r2(v){ return Math.round(v*100)/100; }
+  _r1(v){ return Math.round(v*10)/10; }
+  _fmt(v){ const a=Math.abs(v).toFixed(2); return this.unit==='USDT'?'$'+a:a+'pt'; }
+  _fmtSign(v){ return (v>=0?'+':'-')+this._fmt(v); }
+  _yLbl(v){ return this.unit==='USDT'?'$'+v:v+'pt'; }
+
+  filterTrades(period) {
+    if (period==='all') return this.trades;
+    const now=new Date(); let start;
+    if (period==='week'){const d=new Date(now);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));start=d;}
+    else if (period==='month'){start=new Date(now.getFullYear(),now.getMonth(),1);}
+    else {start=new Date(now-30*86400000);}
+    return this.trades.filter(t=>new Date(t.time)>=start);
+  }
+
+  setFilter(f) {
+    this.filter=f;
+    ['week','month','30d','all'].forEach(k=>{
+      const el=document.getElementById(this.prefix+'-btn-'+k);
+      if(el) el.classList.toggle('active',k===f);
+    });
+    this.render();
+  }
+
+  computeStats(trades) {
+    if (!trades.length) return null;
+    const closed=trades.filter(t=>t.result&&t.result!=='未結束'&&t.result!=='');
+    if (!closed.length) return null;
+    const wins=closed.filter(t=>t.pnl>=0), losses=closed.filter(t=>t.pnl<0);
+    const totalPnl=closed.reduce((s,t)=>s+t.pnl,0);
+    const totalFunding=closed.reduce((s,t)=>s+(t.funding||0),0);
+    const totalNet=totalPnl+totalFunding;
+    const dailyW={},dailyL={};
+    closed.forEach(t=>{const d=t.time.slice(0,10); if(t.pnl>=0)dailyW[d]=(dailyW[d]||0)+t.pnl; else dailyL[d]=(dailyL[d]||0)+Math.abs(t.pnl);});
+    const days=[...new Set(closed.map(t=>t.time.slice(0,10)))].sort();
+    let cum=0; const cumPnl=days.map(d=>{cum+=(dailyW[d]||0)-(dailyL[d]||0);return this._r2(cum);});
+    const grpPnl={},grpW={},grpT={};
+    closed.forEach(t=>{grpPnl[t.symbol]=(grpPnl[t.symbol]||0)+t.pnl;grpT[t.symbol]=(grpT[t.symbol]||0)+1;if(t.pnl>=0)grpW[t.symbol]=(grpW[t.symbol]||0)+1;});
+    const hourW=Array(24).fill(0),hourL=Array(24).fill(0);
+    closed.forEach(t=>{const h=parseInt(t.time.slice(11,13));if(!isNaN(h)){if(t.pnl>=0)hourW[h]++;else hourL[h]++;}});
+    const weekW=Array(7).fill(0),weekL=Array(7).fill(0);
+    closed.forEach(t=>{const dow=(new Date(t.time).getDay()+6)%7;if(t.pnl>=0)weekW[dow]++;else weekL[dow]++;});
+    let maxCL=0,curCL=0;
+    [...closed].sort((a,b)=>a.time.localeCompare(b.time)).forEach(t=>{if(t.pnl<0){curCL++;maxCL=Math.max(maxCL,curCL);}else curCL=0;});
+    let peak=0,maxDD=0,runC=0;
+    [...closed].sort((a,b)=>a.time.localeCompare(b.time)).forEach(t=>{runC+=t.pnl;peak=Math.max(peak,runC);maxDD=Math.max(maxDD,peak-runC);});
+    const holds=closed.filter(t=>t.close_time).map(t=>(new Date(t.close_time)-new Date(t.time))/3600000);
+    const avgHold=holds.length?holds.reduce((s,v)=>s+v,0)/holds.length:null;
+    return {
+      total:trades.length,closed:closed.length,wins:wins.length,losses:losses.length,
+      totalPnl:this._r2(totalPnl),totalFunding:this._r2(totalFunding),totalNet:this._r2(totalNet),
+      winRate:this._r1(wins.length/closed.length*100),
+      best:this._r2(Math.max(...closed.map(t=>t.pnl))),worst:this._r2(Math.min(...closed.map(t=>t.pnl))),
+      avgHold:avgHold?this._r1(avgHold):null,maxCL,maxDD:this._r2(maxDD),
+      days,dailyW:days.map(d=>this._r2(dailyW[d]||0)),dailyL:days.map(d=>this._r2(dailyL[d]||0)),
+      cumPnl,grpPnl,grpW,grpT,hourW,hourL,weekW,weekL,
+      recent:[...trades].sort((a,b)=>b.time.localeCompare(a.time)).slice(0,15),
+    };
+  }
+
+  _initCharts() {
+    const p=this.prefix, yLbl=v=>this._yLbl(v), ac=this.accent;
+    this.charts.pnl=new Chart(document.getElementById(p+'_pnl'),{type:'bar',
+      data:{labels:[],datasets:[
+        {type:'bar',label:'止盈',data:[],backgroundColor:'#5DCAA5',borderRadius:3},
+        {type:'bar',label:'止損',data:[],backgroundColor:'#F0997B',borderRadius:3},
+        {type:'line',label:'累積',data:[],borderColor:ac,backgroundColor:'transparent',pointBackgroundColor:ac,pointRadius:3,tension:0.3,yAxisID:'y2'},
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{y:{ticks:{callback:yLbl,font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}},
+                y2:{position:'right',ticks:{callback:yLbl,font:{size:10}},grid:{display:false}}}}});
+    this.charts.sympnl=new Chart(document.getElementById(p+'_sympnl'),{type:'bar',
+      data:{labels:[],datasets:[{data:[],backgroundColor:[],borderRadius:3}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{x:{ticks:{callback:yLbl,font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}},y:{ticks:{font:{size:10}}}}}});
+    this.charts.hour=new Chart(document.getElementById(p+'_hour'),{type:'bar',
+      data:{labels:Array.from({length:24},(_,i)=>String(i).padStart(2,'0')),
+            datasets:[{label:'止盈',data:Array(24).fill(0),backgroundColor:'#5DCAA5',borderRadius:2,stack:'h'},
+                      {label:'止損',data:Array(24).fill(0),backgroundColor:'#F0997B',borderRadius:2,stack:'h'}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{x:{ticks:{font:{size:9}}},y:{ticks:{stepSize:1,font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}}}}});
+    this.charts.week=new Chart(document.getElementById(p+'_week'),{type:'bar',
+      data:{labels:['週一','週二','週三','週四','週五','週六','週日'],
+            datasets:[{label:'止盈',data:Array(7).fill(0),backgroundColor:'#5DCAA5',borderRadius:3},
+                      {label:'止損',data:Array(7).fill(0),backgroundColor:'#F0997B',borderRadius:3}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{x:{ticks:{font:{size:11}}},y:{ticks:{stepSize:1,font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}}}}});
+    this.charts.symwr=new Chart(document.getElementById(p+'_symwr'),{type:'bar',
+      data:{labels:[],datasets:[{data:[],backgroundColor:[],borderRadius:3}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{x:{min:0,max:100,ticks:{callback:v=>v+'%',font:{size:10}}},y:{ticks:{font:{size:10}}}}}});
+  }
+
+  _updateCharts(s) {
+    const c=this.charts;
+    c.pnl.data.labels=s.days;c.pnl.data.datasets[0].data=s.dailyW;c.pnl.data.datasets[1].data=s.dailyL;c.pnl.data.datasets[2].data=s.cumPnl;c.pnl.update();
+    const gp=Object.entries(s.grpPnl).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    c.sympnl.data.labels=gp.map(([k])=>k.replace('USDT',''));
+    c.sympnl.data.datasets[0].data=gp.map(([,v])=>this._r2(v));
+    c.sympnl.data.datasets[0].backgroundColor=gp.map(([,v])=>v>=0?'#5DCAA5':'#F0997B');
+    c.sympnl.update();
+    c.hour.data.datasets[0].data=s.hourW;c.hour.data.datasets[1].data=s.hourL;c.hour.update();
+    c.week.data.datasets[0].data=s.weekW;c.week.data.datasets[1].data=s.weekL;c.week.update();
+    const wr=Object.entries(s.grpT).map(([sym,t])=>({sym,wr:this._r1((s.grpW[sym]||0)/t*100),t}))
+      .sort((a,b)=>b.t-a.t).slice(0,10).sort((a,b)=>b.wr-a.wr);
+    c.symwr.data.labels=wr.map(d=>d.sym.replace('USDT',''));
+    c.symwr.data.datasets[0].data=wr.map(d=>d.wr);
+    c.symwr.data.datasets[0].backgroundColor=wr.map(d=>d.wr>=65?'#5DCAA5':d.wr>=50?'#FAC775':'#F0997B');
+    c.symwr.update();
+  }
+
+  _renderCards(s) {
+    const p=this.prefix, isU=(this.unit==='USDT');
+    const expVal=s.closed?this._r2(s.totalPnl/s.closed):0;
+    const ddThresh=isU?[10,30]:[20,60];
+    const ddCls=s.maxDD>ddThresh[1]?'neg':s.maxDD>ddThresh[0]?'':'pos';
+    const holdStr=s.avgHold!==null?(s.avgHold>=1?`${this._r1(s.avgHold)}h`:`${Math.round(s.avgHold*60)}m`):'N/A';
+    document.getElementById(p+'-cards1').innerHTML=`
+      <div class="metric"><div class="lbl">總損益${isU?'（含費率）':'（點數）'}</div>
+        <div class="val ${s.totalNet>=0?'pos':'neg'}">${this._fmtSign(s.totalNet)}</div>
+        <div class="sub2">交易 ${this._fmtSign(s.totalPnl)}${isU&&s.totalFunding!==0?' · 費 '+this._fmtSign(s.totalFunding):''}</div></div>
+      <div class="metric"><div class="lbl">勝率</div><div class="val">${s.winRate}%</div>
+        <div class="sub2">${s.wins}勝 / ${s.losses}敗</div></div>
+      <div class="metric"><div class="lbl">總筆數</div><div class="val">${s.total} 筆</div>
+        <div class="sub2">已結 ${s.closed} 筆</div></div>
+      <div class="metric"><div class="lbl">最佳 / 最差</div>
+        <div class="val pos">${this._fmtSign(s.best)}</div>
+        <div class="sub2 neg">${this._fmtSign(s.worst)}</div></div>`;
+    document.getElementById(p+'-cards2').innerHTML=`
+      <div class="metric"><div class="lbl">最大回撤</div>
+        <div class="val ${ddCls}">${this._fmtSign(-s.maxDD)}</div></div>
+      <div class="metric"><div class="lbl">最大連虧</div>
+        <div class="val ${s.maxCL>=5?'neg':''}">${s.maxCL} 筆</div></div>
+      <div class="metric"><div class="lbl">平均持倉</div><div class="val">${holdStr}</div></div>
+      <div class="metric"><div class="lbl">每筆期望值</div>
+        <div class="val ${expVal>=0?'pos':'neg'}">${this._fmtSign(expVal)}</div></div>`;
+  }
+
+  _renderRecent(trades) {
+    const el=document.getElementById(this.prefix+'-recent');
+    if (!trades.length){el.innerHTML='<div class="empty">無交易紀錄</div>';return;}
+    let html='';
+    trades.forEach(t=>{
+      const open=!t.result||t.result==='未結束'||t.result==='';
+      const win=!open&&t.pnl>=0;
+      const cls=open?'tn':win?'tw':'tl';
+      const pnlStr=open?'開倉中':this._fmtSign(t.pnl);
+      const holdStr=t.close_time?(()=>{const h=(new Date(t.close_time)-new Date(t.time))/3600000;return h>=1?` · ${this._r1(h)}h`:` · ${Math.round(h*60)}m`;})():'';
+      const combo=t.combo?` · ${t.combo}`:'';
+      html+=`<div class="row-t">
+        <span><span class="sym">${t.symbol.replace('USDT','')}</span>
+        <span class="tf"> · ${t.direction} · ${t.time.slice(0,10)}${holdStr}${combo}</span></span>
+        <span class="tag ${cls}">${open?'開倉中':t.result} ${pnlStr}</span></div>`;
+    });
+    el.innerHTML=html;
+  }
+
+  render() {
+    const trades=this.filterTrades(this.filter), p=this.prefix;
+    const s=this.computeStats(trades);
+    if (!s){
+      document.getElementById(p+'-cards1').innerHTML=
+      document.getElementById(p+'-cards2').innerHTML='<div class="empty">無資料</div>';
+      document.getElementById(p+'-recent').innerHTML='<div class="empty">無交易紀錄</div>';
+      return;
+    }
+    this._renderCards(s);
+    this._updateCharts(s);
+    this._renderRecent(s.recent);
+  }
+
+  resize(){ Object.values(this.charts).forEach(c=>{try{c.resize();}catch(e){}}); }
 }
 
-function computeStats(trades) {
-  if (!trades.length) return null;
-  const wins   = trades.filter(t => t.pnl >= 0);
-  const losses = trades.filter(t => t.pnl < 0);
-  const totalPnl     = trades.reduce((s, t) => s + t.pnl, 0);
-  const totalFunding = trades.reduce((s, t) => s + (t.funding||0), 0);
-  const totalNet     = totalPnl + totalFunding;
-
-  // Daily PnL
-  const dailyW = {}, dailyL = {};
-  trades.forEach(t => {
-    const d = t.time.slice(0,10);
-    if (t.pnl >= 0) dailyW[d] = (dailyW[d]||0) + t.pnl;
-    else             dailyL[d] = (dailyL[d]||0) + Math.abs(t.pnl);
-  });
-  const days = [...new Set(trades.map(t=>t.time.slice(0,10)))].sort();
-  let cum = 0;
-  const cumPnl = days.map(d => { cum += (dailyW[d]||0)-(dailyL[d]||0); return r2(cum); });
-
-  // Symbol PnL & WR
-  const symPnl = {}, symW = {}, symT = {};
-  trades.forEach(t => {
-    symPnl[t.symbol] = (symPnl[t.symbol]||0) + t.pnl;
-    symT[t.symbol]   = (symT[t.symbol]||0) + 1;
-    if (t.pnl >= 0) symW[t.symbol] = (symW[t.symbol]||0) + 1;
-  });
-
-  // Hourly
-  const hourW = Array(24).fill(0), hourL = Array(24).fill(0);
-  trades.forEach(t => {
-    const h = parseInt(t.time.slice(11,13));
-    if (t.pnl >= 0) hourW[h]++; else hourL[h]++;
-  });
-
-  // Weekly (0=Mon)
-  const weekW = Array(7).fill(0), weekL = Array(7).fill(0);
-  trades.forEach(t => {
-    const dow = (new Date(t.time).getDay() + 6) % 7;
-    if (t.pnl >= 0) weekW[dow]++; else weekL[dow]++;
-  });
-
-  // Max consecutive loss
-  let maxCL = 0, curCL = 0;
-  [...trades].sort((a,b)=>a.time.localeCompare(b.time)).forEach(t => {
-    if (t.pnl < 0) { curCL++; maxCL = Math.max(maxCL, curCL); } else curCL = 0;
-  });
-
-  // Max drawdown
-  let peak = 0, maxDD = 0, runC = 0;
-  [...trades].sort((a,b)=>a.time.localeCompare(b.time)).forEach(t => {
-    runC += t.pnl;
-    peak = Math.max(peak, runC);
-    maxDD = Math.max(maxDD, peak - runC);
-  });
-
-  // Avg holding hours
-  const holds = trades
-    .filter(t => t.close_time)
-    .map(t => (new Date(t.close_time) - new Date(t.time)) / 3600000);
-  const avgHold = holds.length ? holds.reduce((s,v)=>s+v,0)/holds.length : null;
-
-  return {
-    total: trades.length, wins: wins.length, losses: losses.length,
-    totalPnl: r2(totalPnl), totalFunding: r2(totalFunding), totalNet: r2(totalNet),
-    winRate: r1(wins.length / trades.length * 100),
-    best: r2(Math.max(...trades.map(t=>t.pnl))),
-    worst: r2(Math.min(...trades.map(t=>t.pnl))),
-    avgHold: avgHold ? r1(avgHold) : null,
-    maxCL, maxDD: r2(maxDD),
-    days,
-    dailyW: days.map(d => r2(dailyW[d]||0)),
-    dailyL: days.map(d => r2(dailyL[d]||0)),
-    cumPnl,
-    symPnl, symW, symT,
-    hourW, hourL, weekW, weekL,
-    recent: [...trades].sort((a,b)=>b.time.localeCompare(a.time)).slice(0,10),
-  };
-}
-
-// ── 卡片 ─────────────────────────────────────────────────────
-function renderCards(s) {
-  const pnlCls  = s.totalNet >= 0 ? 'pos' : 'neg';
-  const pnlSign = s.totalNet >= 0 ? '+' : '';
-  const fundSign = s.totalFunding >= 0 ? '+' : '';
-
-  document.getElementById('cards1').innerHTML = `
-    <div class="metric"><div class="lbl">總損益（含資金費）</div>
-      <div class="val ${pnlCls}">${pnlSign}$${Math.abs(s.totalNet)}</div>
-      <div class="sub2">交易 ${s.totalPnl>=0?'+':''}$${s.totalPnl} · 費 ${fundSign}$${Math.abs(s.totalFunding)}</div></div>
-    <div class="metric"><div class="lbl">勝率</div>
-      <div class="val">${s.winRate}%</div>
-      <div class="sub2">${s.wins}勝 / ${s.losses}敗</div></div>
-    <div class="metric"><div class="lbl">總筆數</div>
-      <div class="val">${s.total} 筆</div></div>
-    <div class="metric"><div class="lbl">最佳 / 最差</div>
-      <div class="val"><span class="pos">+$${s.best}</span></div>
-      <div class="sub2 neg">$${s.worst}</div></div>`;
-
-  const holdStr = s.avgHold !== null
-    ? (s.avgHold >= 1 ? `${r1(s.avgHold)}h` : `${Math.round(s.avgHold*60)}m`)
-    : 'N/A';
-  const ddCls = s.maxDD > 30 ? 'neg' : s.maxDD > 10 ? '' : 'pos';
-
-  document.getElementById('cards2').innerHTML = `
-    <div class="metric"><div class="lbl">最大回撤</div>
-      <div class="val ${ddCls}">-$${s.maxDD}</div></div>
-    <div class="metric"><div class="lbl">最大連虧</div>
-      <div class="val ${s.maxCL >= 5 ? 'neg' : ''}">${s.maxCL} 筆</div></div>
-    <div class="metric"><div class="lbl">平均持倉</div>
-      <div class="val">${holdStr}</div></div>
-    <div class="metric"><div class="lbl">每筆期望值</div>
-      <div class="val ${r2(s.totalPnl/s.total) >= 0 ? 'pos':'neg'}">${r2(s.totalPnl/s.total) >= 0 ? '+' : ''}$${r2(s.totalPnl/s.total)}</div></div>`;
-}
-
-// ── 圖表初始化 ────────────────────────────────────────────────
-let charts = {};
-
-function initCharts() {
-  // PnL Chart (bar + line combo)
-  if (charts.pnl) charts.pnl.destroy();
-  charts.pnl = new Chart(document.getElementById('pnlChart'), {
-    type: 'bar',
-    data: { labels: [], datasets: [
-      { type:'bar', label:'止盈', data:[], backgroundColor:'#5DCAA5', borderRadius:3 },
-      { type:'bar', label:'止損', data:[], backgroundColor:'#F0997B', borderRadius:3 },
-      { type:'line', label:'累積', data:[], borderColor:'#378ADD', backgroundColor:'transparent',
-        pointBackgroundColor:'#378ADD', pointRadius:3, tension:0.3, yAxisID:'y2' }
-    ]},
-    options: { responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false} },
-      scales:{
-        y:{ ticks:{callback:v=>'$'+v, font:{size:10}}, grid:{color:'rgba(0,0,0,0.05)'} },
-        y2:{ position:'right', ticks:{callback:v=>'$'+v, font:{size:10}}, grid:{display:false} }
-      }
-    }
-  });
-
-  // Symbol PnL (horizontal bar)
-  if (charts.symPnl) charts.symPnl.destroy();
-  charts.symPnl = new Chart(document.getElementById('symPnlChart'), {
-    type: 'bar',
-    data: { labels:[], datasets:[{ data:[], backgroundColor:[], borderRadius:3 }] },
-    options: { indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false} },
-      scales:{ x:{ ticks:{callback:v=>'$'+v, font:{size:10}}, grid:{color:'rgba(0,0,0,0.05)'} },
-               y:{ ticks:{font:{size:10}} } }
-    }
-  });
-
-  // Hourly
-  if (charts.hour) charts.hour.destroy();
-  charts.hour = new Chart(document.getElementById('hourChart'), {
-    type:'bar',
-    data:{ labels: Array.from({length:24},(_,i)=>String(i).padStart(2,'0')),
-           datasets:[
-             { label:'止盈', data:Array(24).fill(0), backgroundColor:'#5DCAA5', borderRadius:2, stack:'h' },
-             { label:'止損', data:Array(24).fill(0), backgroundColor:'#F0997B', borderRadius:2, stack:'h' },
-           ]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false} },
-      scales:{ x:{ticks:{font:{size:9}}}, y:{ticks:{stepSize:1, font:{size:10}},
-        grid:{color:'rgba(0,0,0,0.05)'}} }
-    }
-  });
-
-  // Weekly
-  if (charts.week) charts.week.destroy();
-  charts.week = new Chart(document.getElementById('weekChart'), {
-    type:'bar',
-    data:{ labels:['週一','週二','週三','週四','週五','週六','週日'],
-           datasets:[
-             { label:'止盈', data:Array(7).fill(0), backgroundColor:'#5DCAA5', borderRadius:3 },
-             { label:'止損', data:Array(7).fill(0), backgroundColor:'#F0997B', borderRadius:3 },
-           ]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false} },
-      scales:{ x:{ticks:{font:{size:11}}}, y:{ticks:{stepSize:1, font:{size:10}},
-        grid:{color:'rgba(0,0,0,0.05)'}} }
-    }
-  });
-
-  // Symbol Win Rate
-  if (charts.symWr) charts.symWr.destroy();
-  charts.symWr = new Chart(document.getElementById('symWrChart'), {
-    type:'bar',
-    data:{ labels:[], datasets:[{ data:[], backgroundColor:[], borderRadius:3 }] },
-    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false} },
-      scales:{ x:{min:0,max:100, ticks:{callback:v=>v+'%',font:{size:10}}},
-               y:{ticks:{font:{size:10}}} }
-    }
-  });
-}
-
-// ── 圖表更新 ─────────────────────────────────────────────────
-function updateCharts(s) {
-  // Daily PnL
-  charts.pnl.data.labels = s.days;
-  charts.pnl.data.datasets[0].data = s.dailyW;
-  charts.pnl.data.datasets[1].data = s.dailyL;
-  charts.pnl.data.datasets[2].data = s.cumPnl;
-  charts.pnl.update();
-
-  // Symbol PnL ranking (sorted by PnL, top 12)
-  const symPnlSorted = Object.entries(s.symPnl)
-    .sort((a,b)=>b[1]-a[1]).slice(0,12);
-  charts.symPnl.data.labels = symPnlSorted.map(([sym])=>sym.replace('USDT',''));
-  charts.symPnl.data.datasets[0].data = symPnlSorted.map(([,v])=>r2(v));
-  charts.symPnl.data.datasets[0].backgroundColor = symPnlSorted.map(([,v])=>v>=0?'#5DCAA5':'#F0997B');
-  charts.symPnl.update();
-
-  // Hourly
-  charts.hour.data.datasets[0].data = s.hourW;
-  charts.hour.data.datasets[1].data = s.hourL;
-  charts.hour.update();
-
-  // Weekly
-  charts.week.data.datasets[0].data = s.weekW;
-  charts.week.data.datasets[1].data = s.weekL;
-  charts.week.update();
-
-  // Symbol WR (top 10 by total trades)
-  const symWrSorted = Object.entries(s.symT)
-    .map(([sym,t]) => ({ sym, wr: r1((s.symW[sym]||0)/t*100), t }))
-    .sort((a,b)=>b.t-a.t).slice(0,10)
-    .sort((a,b)=>b.wr-a.wr);
-  charts.symWr.data.labels = symWrSorted.map(d=>d.sym.replace('USDT',''));
-  charts.symWr.data.datasets[0].data = symWrSorted.map(d=>d.wr);
-  charts.symWr.data.datasets[0].backgroundColor = symWrSorted.map(d=>
-    d.wr>=65?'#5DCAA5':d.wr>=50?'#FAC775':'#F0997B');
-  charts.symWr.update();
-}
-
-// ── 持倉渲染 ─────────────────────────────────────────────────
 function renderPositions() {
-  const el = document.getElementById('posSection');
-  if (!POSITIONS.length) {
-    el.innerHTML = '<div class="empty">目前無開倉中的倉位</div>';
-    return;
-  }
-  let html = `<table class="tbl"><thead><tr>
+  const el=document.getElementById('bb-pos');
+  if (!POSITIONS.length){el.innerHTML='<div class="empty">目前無開倉中的倉位</div>';return;}
+  let html=`<table class="tbl"><thead><tr>
     <th>幣種</th><th>方向</th><th>手數</th><th>入場價</th><th>現價</th><th>漲跌%</th><th>未實現損益</th>
   </tr></thead><tbody>`;
-  POSITIONS.forEach(p => {
-    const upnlCls = p.upnl >= 0 ? 'pos' : 'neg';
-    const upnlSign = p.upnl >= 0 ? '+' : '';
-    const pctCls = p.pct >= 0 ? 'pos' : 'neg';
-    const dirTag = p.direction === 'long'
-      ? '<span class="pos-tag-l">多</span>'
-      : '<span class="pos-tag-s">空</span>';
-    html += `<tr>
-      <td><strong>${p.symbol}</strong></td>
-      <td>${dirTag}</td>
-      <td>${p.qty}</td>
-      <td>${p.entry}</td>
-      <td>${p.price}</td>
-      <td class="${pctCls}">${p.pct >= 0 ? '+' : ''}${p.pct}%</td>
-      <td class="${upnlCls}">${upnlSign}$${Math.abs(p.upnl)}</td>
-    </tr>`;
+  POSITIONS.forEach(p=>{
+    const cls=p.upnl>=0?'pos':'neg',sign=p.upnl>=0?'+':'';
+    const pctCls=p.pct>=0?'pos':'neg';
+    const dir=p.direction==='long'?'<span class="pos-tag-l">多</span>':'<span class="pos-tag-s">空</span>';
+    html+=`<tr><td><strong>${p.symbol}</strong></td><td>${dir}</td><td>${p.qty}</td>
+      <td>${p.entry}</td><td>${p.price}</td>
+      <td class="${pctCls}">${p.pct>=0?'+':''}${p.pct}%</td>
+      <td class="${cls}">${sign}$${Math.abs(p.upnl)}</td></tr>`;
   });
-  html += '</tbody></table>';
-  el.innerHTML = html;
+  html+='</tbody></table>';
+  el.innerHTML=html;
 }
 
-// ── 最近交易渲染 ──────────────────────────────────────────────
-function renderRecent(trades) {
-  const el = document.getElementById('recentSection');
-  if (!trades.length) { el.innerHTML = '<div class="empty">無交易紀錄</div>'; return; }
-  let html = '';
-  trades.forEach(t => {
-    const pnl = t.pnl;
-    const sign = pnl >= 0 ? '+' : '';
-    const cls  = pnl >= 0 ? 'tw' : 'tl';
-    const holdStr = t.close_time
-      ? (() => {
-          const h = (new Date(t.close_time) - new Date(t.time)) / 3600000;
-          return h >= 1 ? `${r1(h)}h` : `${Math.round(h*60)}m`;
-        })()
-      : '';
-    html += `<div class="row-t">
-      <span>
-        <span class="sym">${t.symbol}</span>
-        <span class="tf"> · ${t.direction} · ${t.time.slice(0,10)}${holdStr ? ' · 持倉'+holdStr : ''}</span>
-      </span>
-      <span class="tag ${cls}">${t.result} ${sign}$${Math.abs(pnl).toFixed(2)}</span>
-    </div>`;
-  });
-  el.innerHTML = html;
+let activeTab='gold';
+const ctrl={};
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-pane').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelector('.tab-btn[data-tab="'+tab+'"]').classList.add('active');
+  activeTab=tab;
+  setTimeout(()=>{if(ctrl[tab])ctrl[tab].resize();},60);
 }
 
-// ── 主渲染 ───────────────────────────────────────────────────
-function renderAll(trades) {
-  const s = computeStats(trades);
-  if (!s) {
-    document.getElementById('cards1').innerHTML =
-    document.getElementById('cards2').innerHTML = '<div class="empty">無資料</div>';
-    return;
-  }
-  renderCards(s);
-  updateCharts(s);
-  renderRecent(s.recent);
-}
-
-// ── 篩選按鈕 ─────────────────────────────────────────────────
-function setFilter(f) {
-  ['week','month','30d','all'].forEach(k => {
-    document.getElementById('btn-'+k).classList.toggle('active', k===f);
-  });
-  renderAll(filterTrades(f));
-}
-
-// ── 初始化 ───────────────────────────────────────────────────
-initCharts();
+ctrl.gold    = new TabCtrl({tab:'gold',    prefix:'gold', unit:'點',   accent:'#D4A84B'});
+ctrl.binance = new TabCtrl({tab:'binance', prefix:'bb',   unit:'USDT', accent:'#378ADD'});
+ctrl.smc     = new TabCtrl({tab:'smc',     prefix:'smc',  unit:'USDT', accent:'#7C5CBF'});
 renderPositions();
-renderAll(ALL_TRADES);
 </script>
 </body>
 </html>
